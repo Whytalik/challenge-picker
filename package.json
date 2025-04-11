@@ -1,0 +1,14 @@
+{
+  "name": "challenge-picker",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "frontend": "cd apps/frontend && pnpm dev",
+    "backend": "cd apps/backend && pnpm start:dev",
+    "build": "pnpm -r build",
+    "dev": "concurrently \"pnpm frontend\" \"pnpm backend\""
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  }
+}

@@ -1,0 +1,73 @@
+# Dependencies
+**/node_modules
+**/.pnpm-store/
+
+# Build outputs
+**/dist
+**/dist-ssr
+**/build
+
+# Testing
+**/coverage
+**/.nyc_output
+**/test
+
+# IDE and editors
+**/.idea
+**/.project
+**/.classpath
+**/.c9/
+**/*.launch
+**/.settings/
+**/*.sublime-workspace
+**/.vscode/*
+!**/.vscode/extensions.json
+**/*.iml
+**/.history
+**/.yarn
+**/.pnp.*
+
+# Logs
+**/logs
+**/*.log
+**/npm-debug.log*
+**/yarn-debug.log*
+**/yarn-error.log*
+**/pnpm-debug.log*
+**/lerna-debug.log*
+
+# Environment variables
+**/.env
+**/.env.*
+!**/.env.example
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Development configs
+**/.prettierrc
+**/tsconfig*.json
+**/vite.config.ts
+**/nest-cli.json
+**/eslint.config.*
+
+# TypeScript
+**/*.tsbuildinfo
+
+# Cache and temp
+**/.temp
+**/.tmp
+**/.cache
+**/*.cache
+
+# Static assets
+**/public/
+**/assets/
+**/dist/
+**/build/
+**/.output
+
+# Debug
+**/.debug
+**/*.debug
