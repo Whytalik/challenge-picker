@@ -5,7 +5,6 @@ interface Challenge {
   id: string;
   title: string;
   description: string;
-  complexity: string;
 }
 
 export const useChallengeStore = defineStore("challenge", {

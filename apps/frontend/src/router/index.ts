@@ -3,6 +3,11 @@ import ChallengePage from "@/pages/ChallengePage.vue";
 
 const routes = [
   {
+    path: "/",
+    name: "Home",
+    component: ChallengePage,
+  },
+  {
     path: "/challenge",
     name: "Challenge",
     component: ChallengePage,
