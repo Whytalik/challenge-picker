@@ -35,12 +35,12 @@ import { RouterView } from "vue-router";
   align-items: center;
   margin-bottom: 2rem;
   padding-bottom: 1rem;
-  border-bottom: 1px solid #eaeaea;
+  border-bottom: 1px solid var(--color-primary-light);
 }
 
 .app-title {
   font-size: 1.8rem;
-  color: #333;
+  color: var(--color-primary-dark);
   margin: 0;
 }
 
@@ -51,14 +51,15 @@ import { RouterView } from "vue-router";
 
 .nav-link {
   text-decoration: none;
-  color: #4caf50;
+  color: var(--color-secondary);
   padding: 0.5rem 1rem;
   border-radius: 4px;
   transition: background-color 0.3s;
 }
 
 .nav-link:hover {
-  background-color: #f5f5f5;
+  background-color: var(--color-secondary-light);
+  color: var(--color-tertiary);
 }
 
 .app-content {
@@ -68,8 +69,8 @@ import { RouterView } from "vue-router";
 .app-footer {
   margin-top: 3rem;
   padding-top: 1rem;
-  border-top: 1px solid #eaeaea;
+  border-top: 1px solid var(--color-primary-light);
   text-align: center;
-  color: #666;
+  color: var(--color-primary);
 }
 </style>
