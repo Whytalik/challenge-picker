@@ -14,7 +14,7 @@ export class ChallengeService {
 
   async getRandom() {
     const count = await this.prisma.challenge.count();
-    
+
     if (count === 0) {
       throw new NotFoundException('No challenges available');
     }
