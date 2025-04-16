@@ -41,9 +41,7 @@
 
         <div class="form-group">
           <div class="label-with-counter">
-            <label class="form-label" for="description"
-              >Description (optional):</label
-            >
+            <label class="form-label" for="description">Description:</label>
             <span
               class="character-count"
               :class="{ 'limit-reached': form.description.length >= 300 }"
@@ -58,10 +56,83 @@
             v-model="form.description"
             @blur="v$.description.$touch()"
             maxlength="300"
+            rows="4"
           ></textarea>
           <div v-if="v$.description.$error" class="error-message">
             <p v-if="v$.description.maxLength.$invalid">
               Опис не може перевищувати 300 символів
+            </p>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="difficulty">Difficulty:</label>
+          <select
+            class="form-select"
+            :class="{ 'input-error': v$.difficulty.$error }"
+            id="difficulty"
+            v-model="form.difficulty"
+            @blur="v$.difficulty.$touch()"
+          >
+            <option value="easy">Easy 🟢</option>
+            <option value="medium">Medium 🟡</option>
+            <option value="hard">Hard 🔴</option>
+          </select>
+          <div v-if="v$.difficulty.$error" class="error-message">
+            <p v-if="v$.difficulty.required.$invalid">
+              Складність челенджу є обов'язковою
+            </p>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="tags">Tags:</label>
+          <div class="tags-input-container">
+            <div class="tags-display">
+              <span
+                v-for="(tag, index) in form.tags"
+                :key="index"
+                class="tag-badge"
+              >
+                {{ tag }}
+                <button
+                  type="button"
+                  class="tag-remove"
+                  @click="removeTag(index)"
+                >
+                  &times;
+                </button>
+              </span>
+            </div>
+            <input
+              class="tags-input"
+              :class="{ 'input-error': v$.tags.$error }"
+              id="tagInput"
+              v-model="tagInput"
+              type="text"
+              placeholder="Add tags (press Enter to add)"
+              @keyup.enter="addTag"
+              @blur="v$.tags.$touch()"
+            />
+          </div>
+          <div v-if="v$.tags.$error" class="error-message">
+            <p v-if="v$.tags.isArray.$invalid">Теги повинні бути масивом</p>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="category">Category (optional):</label>
+          <input
+            class="form-input"
+            :class="{ 'input-error': v$.category.$error }"
+            id="category"
+            v-model="form.category"
+            type="text"
+            @blur="v$.category.$touch()"
+          />
+          <div v-if="v$.category.$error" class="error-message">
+            <p v-if="v$.category.maxLength.$invalid">
+              Категорія не може перевищувати 50 символів
             </p>
           </div>
         </div>
@@ -91,11 +162,11 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, computed, onMounted } from "vue";
+import { reactive, computed, onMounted, ref } from "vue";
 import { useVuelidate } from "@vuelidate/core";
-import { required, maxLength } from "@vuelidate/validators";
+import { required, maxLength, helpers } from "@vuelidate/validators";
 import Spinner from "./Spinner.vue";
-import type { Challenge } from "@/stores/useChallengeStore";
+import type { Challenge, Difficulty } from "@/stores/useChallengeStore";
 
 const props = defineProps({
   challenge: {
@@ -117,9 +188,14 @@ const isEditMode = computed(() => !!props.challenge);
 
 const emit = defineEmits(["submit", "cancel"]);
 
+const tagInput = ref("");
+
 const form = reactive({
   title: "",
   description: "",
+  difficulty: "easy" as Difficulty,
+  tags: [] as string[],
+  category: "",
 });
 
 const rules = {
@@ -130,9 +206,30 @@ const rules = {
   description: {
     maxLength: maxLength(300),
   },
+  difficulty: {
+    required,
+  },
+  tags: {
+    isArray: helpers.withMessage("Tags must be an array", () => true),
+  },
+  category: {
+    maxLength: maxLength(50),
+  },
 };
 
 const v$ = useVuelidate(rules, form);
+
+const addTag = () => {
+  const tag = tagInput.value.trim();
+  if (tag && !form.tags.includes(tag)) {
+    form.tags.push(tag);
+  }
+  tagInput.value = "";
+};
+
+const removeTag = (index: number) => {
+  form.tags.splice(index, 1);
+};
 
 const handleSubmit = async () => {
   const isFormValid = await v$.value.$validate();
@@ -146,6 +243,9 @@ const handleSubmit = async () => {
       id: props.challenge.id,
       title: form.title,
       description: form.description,
+      difficulty: form.difficulty,
+      tags: form.tags,
+      category: form.category,
     });
   } else {
     emit("submit", { ...form });
@@ -160,6 +260,9 @@ onMounted(() => {
   if (isEditMode.value && props.challenge) {
     form.title = props.challenge.title;
     form.description = props.challenge.description || "";
+    form.difficulty = props.challenge.difficulty || "easy";
+    form.tags = props.challenge.tags || [];
+    form.category = props.challenge.category || "";
   }
 });
 </script>
@@ -243,113 +346,156 @@ onMounted(() => {
   color: var(--color-primary-dark);
   font-weight: 500;
   margin: 0;
+  margin-bottom: 0.5rem;
+  display: block;
 }
 
 .character-count {
   font-size: 0.8rem;
   color: var(--color-primary);
-  font-weight: normal;
-  min-width: 45px;
-  text-align: right;
 }
 
 .limit-reached {
   color: var(--color-error);
-  font-weight: bold;
 }
 
 .form-input,
-.form-textarea {
+.form-textarea,
+.form-select {
   width: 100%;
   padding: 0.75rem;
   border: 1px solid var(--color-primary-light);
   border-radius: 4px;
-  background-color: var(--color-tertiary);
   font-size: 1rem;
+  background-color: white;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
   transition: border-color 0.2s, box-shadow 0.2s;
-  box-sizing: border-box;
-  max-width: 100%;
-  min-height: 20px;
-  resize: vertical;
-}
-
-.form-input:focus,
-.form-textarea:focus {
-  outline: none;
-  border-color: var(--color-secondary);
-  box-shadow: 0 0 0 2px rgba(138, 43, 226, 0.2);
 }
 
 .form-textarea {
-  min-height: 120px;
   resize: vertical;
+  min-height: 100px;
+}
+
+.form-input:focus,
+.form-textarea:focus,
+.form-select:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(var(--color-primary-rgb), 0.2);
 }
 
 .input-error {
   border-color: var(--color-error);
 }
 
-.input-error:focus {
-  box-shadow: 0 0 0 2px rgba(255, 140, 0, 0.2);
-}
-
 .error-message {
   color: var(--color-error);
-  font-size: 0.85rem;
-  margin-top: 0.4rem;
-  margin-bottom: 0;
+  font-size: 0.8rem;
+  margin-top: 0.25rem;
 }
 
-.error-message p {
-  margin: 0.25rem 0;
+.global-error {
+  text-align: center;
+  margin-top: 1rem;
+  padding: 0.5rem;
+  background-color: rgba(var(--color-error-rgb), 0.1);
+  border-radius: 4px;
 }
 
 .form-actions {
   display: flex;
   justify-content: flex-end;
+  margin-top: 1.5rem;
   gap: 1rem;
-  margin-top: 2rem;
-  flex-wrap: nowrap;
 }
 
 .cancel-button {
-  background-color: var(--color-primary-light);
-  color: var(--color-tertiary);
-  padding: 0.75rem 1.25rem;
+  padding: 0.75rem 1.5rem;
+  background-color: var(--color-tertiary-dark);
+  color: var(--color-primary-dark);
   border: none;
   border-radius: 4px;
-  white-space: nowrap;
-  min-width: 100px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
 }
 
 .submit-button {
-  background-color: var(--color-secondary);
-  color: var(--color-tertiary);
-  padding: 0.75rem 1.25rem;
+  padding: 0.75rem 1.5rem;
+  background-color: var(--color-primary);
+  color: white;
   border: none;
   border-radius: 4px;
-  cursor: pointer;
-  font-size: 1rem;
   font-weight: 500;
+  cursor: pointer;
   transition: background-color 0.2s;
 }
 
 .submit-button:hover {
-  background-color: var(--color-secondary-dark);
+  background-color: var(--color-primary-dark);
 }
 
 .submit-button:disabled {
-  background-color: var(--color-primary-light);
+  opacity: 0.7;
   cursor: not-allowed;
 }
 
-.global-error {
-  margin-top: 1rem;
-  padding: 0.75rem;
-  background-color: rgba(255, 140, 0, 0.1);
-  border-left: 4px solid var(--color-error);
+.cancel-button:hover {
+  background-color: var(--color-tertiary-darker);
+}
+
+/* Tags input styles */
+.tags-input-container {
+  border: 1px solid var(--color-primary-light);
   border-radius: 4px;
-  text-align: center;
+  padding: 0.5rem;
+  background-color: white;
+  min-height: 50px;
+}
+
+.tags-display {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.tag-badge {
+  display: inline-flex;
+  align-items: center;
+  background-color: var(--color-secondary-light);
+  color: white;
+  padding: 0.25rem 0.5rem;
+  border-radius: 16px;
+  font-size: 0.85rem;
+}
+
+.tag-remove {
+  border: none;
+  background: transparent;
+  color: white;
+  margin-left: 0.25rem;
+  font-size: 1rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+}
+
+.tag-remove:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+.tags-input {
+  border: none;
+  outline: none;
+  font-size: 0.9rem;
+  width: 100%;
+  padding: 0.25rem 0;
 }
 
 @keyframes fadeIn {
@@ -363,12 +509,12 @@ onMounted(() => {
 
 @keyframes slideUp {
   from {
-    opacity: 0;
     transform: translateY(20px);
+    opacity: 0;
   }
   to {
-    opacity: 1;
     transform: translateY(0);
+    opacity: 1;
   }
 }
 </style>

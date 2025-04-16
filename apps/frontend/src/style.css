@@ -1,28 +1,62 @@
 :root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  font-family: Inter, sans-serif;
   line-height: 1.5;
   font-weight: 400;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  max-width: 1280px;
+  margin: 0 auto;
 
-  /* Color scheme */
-  --color-primary: #555555;
-  --color-primary-light: #777777;
-  --color-primary-dark: #333333;
-
+  --color-primary: #555;
+  --color-primary-dark: #333;
+  --color-primary-light: #ddd;
   --color-secondary: #8a2be2;
-  --color-secondary-light: #9d4edd;
-  --color-secondary-dark: #6a0dad;
-
-  --color-tertiary: #ffffff;
-
+  --color-secondary-dark: #7026b9;
+  --color-secondary-light: #9d50e9;
+  --color-tertiary: #fff;
   --color-error: #ff8c00;
-  --color-background: #f9f9f9;
+  --color-success: #50c878;
+  --color-warning: #ffa500;
+  --color-info: #00a1d6;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 
 body {
-  margin: 0;
+  background-color: var(--color-tertiary);
+  color: var(--color-primary);
   min-height: 100vh;
-  background-color: var(--color-background);
+  margin: 0;
+}
+
+a {
+  color: var(--color-secondary);
+  text-decoration: none;
+}
+
+a:hover {
+  color: var(--color-secondary-dark);
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+}
+
+input,
+textarea {
+  font-family: inherit;
+  color: var(--color-primary);
+}
+
+h1, h2, h3, h4, h5, h6 {
   color: var(--color-primary-dark);
+  margin-bottom: 1rem;
+}
+
+.emoji {
+  margin-left: 0.5rem;
+  font-size: 1.2rem;
 }

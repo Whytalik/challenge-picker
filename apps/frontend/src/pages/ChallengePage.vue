@@ -96,12 +96,11 @@ const challengeMessage = computed(() =>
 );
 
 const formattedChallengeDate = computed(() => {
-  const day = challengeDate.value.getDate().toString().padStart(2, "0");
-  const month = (challengeDate.value.getMonth() + 1)
-    .toString()
-    .padStart(2, "0");
-  const year = challengeDate.value.getFullYear();
-  return `${day}.${month}.${year}`;
+  return challengeDate.value.toLocaleDateString('en-US', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric'
+  });
 });
 
 const isExpiringToday = computed(() => {

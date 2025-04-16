@@ -32,7 +32,6 @@
       :challenge="selectedChallenge"
       :is-loading="store.loading"
       :error="store.error"
-      mode="edit"
       @submit="handleEditSubmit"
       @cancel="closeEditModal"
     />

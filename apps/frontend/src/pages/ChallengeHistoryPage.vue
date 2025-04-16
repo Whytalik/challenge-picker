@@ -1,7 +1,7 @@
 <template>
   <div class="history-page">
     <h1 class="page-title">Challenge History</h1>
-    
+
     <div class="calendar-container">
       <div class="calendar-navigation">
         <div class="calendar-controls">
@@ -12,25 +12,39 @@
           </div>
         </div>
         <h2 class="current-month">
-          {{ currentDate.toLocaleString('en', { month: 'long', year: 'numeric' }) }}
+          {{
+            currentDate.toLocaleString("en-US", {
+              month: "long",
+              year: "numeric",
+            })
+          }}
         </h2>
       </div>
 
       <div class="calendar-grid">
         <div class="weekday" v-for="day in weekDays" :key="day">{{ day }}</div>
         <div
-          v-for="{ date, isCurrentMonth, hasChallenge, challenge } in calendarDays"
+          v-for="{
+            date,
+            isCurrentMonth,
+            hasChallenge,
+            challenge,
+          } in calendarDays"
           :key="date.toISOString()"
           class="calendar-day"
           :class="{
             'other-month': !isCurrentMonth,
             'has-challenge': hasChallenge,
-            'is-today': isToday(date)
+            'is-today': isToday(date),
           }"
-          @click="hasChallenge && showChallengeDetails(challenge)"
+          @click="hasChallenge && challenge && showChallengeDetails(challenge)"
         >
           <span class="day-number">{{ date.getDate() }}</span>
-          <div v-if="hasChallenge" class="challenge-indicator" :title="challenge.title"></div>
+          <div
+            v-if="hasChallenge && challenge"
+            class="challenge-indicator"
+            :title="challenge.title"
+          ></div>
         </div>
       </div>
     </div>
@@ -55,45 +69,61 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue';
-import ChallengeDetailsModal from '@/components/ChallengeDetailsModal.vue';
+import { ref, computed } from "vue";
+import ChallengeDetailsModal from "@/components/ChallengeDetailsModal.vue";
+import type { Challenge } from "@/stores/useChallengeStore";
+
+interface CalendarChallenge extends Challenge {
+  completedAt: Date;
+}
+
+interface CalendarDay {
+  date: Date;
+  isCurrentMonth: boolean;
+  hasChallenge: boolean;
+  challenge: CalendarChallenge | null;
+}
 
 const currentDate = ref(new Date());
-const selectedChallenge = ref(null);
-const weekDays = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
+const selectedChallenge = ref<CalendarChallenge | null>(null);
+const weekDays = ["M", "T", "W", "T", "F", "S", "S"];
 
 const isToday = (date: Date) => {
   const today = new Date();
-  return date.getDate() === today.getDate() &&
-         date.getMonth() === today.getMonth() &&
-         date.getFullYear() === today.getFullYear();
+  return (
+    date.getDate() === today.getDate() &&
+    date.getMonth() === today.getMonth() &&
+    date.getFullYear() === today.getFullYear()
+  );
 };
 
 const goToToday = () => {
   currentDate.value = new Date();
 };
 
-const getCompletedChallenges = () => {
-  const challenges = JSON.parse(localStorage.getItem('completedChallenges') || '[]');
-  return challenges.map(challenge => ({
+const getCompletedChallenges = (): CalendarChallenge[] => {
+  const challenges = JSON.parse(
+    localStorage.getItem("completedChallenges") || "[]"
+  );
+  return challenges.map((challenge: any) => ({
     ...challenge,
-    completedAt: new Date(challenge.completedAt)
+    completedAt: new Date(challenge.completedAt),
   }));
 };
 
-const calendarDays = computed(() => {
+const calendarDays = computed((): CalendarDay[] => {
   const year = currentDate.value.getFullYear();
   const month = currentDate.value.getMonth();
-  
+
   const firstDay = new Date(year, month, 1);
   const lastDay = new Date(year, month + 1, 0);
-  
+
   const daysInMonth = lastDay.getDate();
   const startingDay = firstDay.getDay();
-  
+
   const completedChallenges = getCompletedChallenges();
-  const days = [];
-  
+  const days: CalendarDay[] = [];
+
   const prevMonth = new Date(year, month - 1);
   const daysInPrevMonth = new Date(year, month, 0).getDate();
   for (let i = startingDay - 1; i >= 0; i--) {
@@ -102,26 +132,27 @@ const calendarDays = computed(() => {
       date,
       isCurrentMonth: false,
       hasChallenge: false,
-      challenge: null
+      challenge: null,
     });
   }
-  
+
   for (let day = 1; day <= daysInMonth; day++) {
     const date = new Date(year, month, day);
-    const challenge = completedChallenges.find(c => 
-      c.completedAt.getDate() === date.getDate() &&
-      c.completedAt.getMonth() === date.getMonth() &&
-      c.completedAt.getFullYear() === date.getFullYear()
+    const challenge = completedChallenges.find(
+      (c: CalendarChallenge) =>
+        c.completedAt.getDate() === date.getDate() &&
+        c.completedAt.getMonth() === date.getMonth() &&
+        c.completedAt.getFullYear() === date.getFullYear()
     );
-    
+
     days.push({
       date,
       isCurrentMonth: true,
       hasChallenge: !!challenge,
-      challenge
+      challenge: challenge || null,
     });
   }
-  
+
   const remainingDays = 42 - days.length;
   for (let day = 1; day <= remainingDays; day++) {
     const date = new Date(year, month + 1, day);
@@ -129,10 +160,10 @@ const calendarDays = computed(() => {
       date,
       isCurrentMonth: false,
       hasChallenge: false,
-      challenge: null
+      challenge: null,
     });
   }
-  
+
   return days;
 });
 
@@ -150,7 +181,7 @@ const nextMonth = () => {
   );
 };
 
-const showChallengeDetails = (challenge) => {
+const showChallengeDetails = (challenge: CalendarChallenge) => {
   selectedChallenge.value = challenge;
 };
 </script>
@@ -338,4 +369,4 @@ const showChallengeDetails = (challenge) => {
     font-size: 0.7rem;
   }
 }
-</style> 
+</style>

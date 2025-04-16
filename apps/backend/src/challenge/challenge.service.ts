@@ -11,6 +11,9 @@ export class ChallengeService {
     const data = {
       title: createChallengeDto.title,
       description: createChallengeDto.description || '',
+      difficulty: createChallengeDto.difficulty,
+      tags: createChallengeDto.tags || [],
+      category: createChallengeDto.category,
     };
 
     const challenge = await this.prisma.challenge.create({
@@ -27,15 +30,12 @@ export class ChallengeService {
 
   async getRandom() {
     const count = await this.prisma.challenge.count();
-
     if (count === 0) {
-      throw new NotFoundException('No challenges available');
+      throw new NotFoundException('No challenges found');
     }
 
     const skip = Math.floor(Math.random() * count);
-
-    const [challenge] = await this.prisma.challenge.findMany({
-      take: 1,
+    const challenge = await this.prisma.challenge.findFirst({
       skip,
     });
 

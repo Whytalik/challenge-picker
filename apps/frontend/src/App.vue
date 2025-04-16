@@ -58,16 +58,33 @@
 
 <script setup lang="ts">
 import { RouterView } from "vue-router";
-import { ref } from "vue";
+import { ref, onMounted, onUnmounted } from "vue";
 import ChallengeForm from "@/components/ChallengeForm.vue";
 import { useChallengeStore, type Challenge } from "@/stores/useChallengeStore";
 import Toast from "@/components/Toast.vue";
+import { apiErrorEvents } from "@/api";
 
 const isFormVisible = ref(false);
 const showToast = ref(false);
 const toastMessage = ref("Challenge successfully created! 🎉");
 const toastType = ref("success");
 const store = useChallengeStore();
+
+let unsubscribe: (() => void) | null = null;
+
+onMounted(() => {
+  unsubscribe = apiErrorEvents.subscribe((message, type) => {
+    toastMessage.value = message;
+    toastType.value = type;
+    showToast.value = true;
+  });
+});
+
+onUnmounted(() => {
+  if (unsubscribe) {
+    unsubscribe();
+  }
+});
 
 const toggleFormVisibility = () => {
   isFormVisible.value = !isFormVisible.value;
@@ -88,11 +105,12 @@ const handleSubmit = async (formData: Omit<Challenge, "id">) => {
     toastMessage.value = "Challenge successfully created! 🎉";
     toastType.value = "success";
     showToast.value = true;
-  } catch (error) {
-    console.error("Error creating challenge:", error);
-    toastMessage.value = "Error creating challenge";
-    toastType.value = "error";
-    showToast.value = true;
+  } catch (error: any) {
+    if (!error.friendlyMessage) {
+      toastMessage.value = "Error creating challenge. Please try again.";
+      toastType.value = "error";
+      showToast.value = true;
+    }
   }
 };
 

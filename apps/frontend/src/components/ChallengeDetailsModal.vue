@@ -9,11 +9,11 @@
       <div class="modal-content">
         <div class="challenge-details">
           <h3 class="challenge-title">{{ challenge.title }}</h3>
-          
+
           <p v-if="challenge.description" class="challenge-description">
             {{ challenge.description }}
           </p>
-          
+
           <div class="completion-details">
             <p class="completion-date">
               Completed on: {{ formatDate(challenge.completedAt) }}
@@ -26,24 +26,24 @@
 </template>
 
 <script setup lang="ts">
-import { defineProps, defineEmits } from 'vue';
+import { defineProps, defineEmits } from "vue";
 
 const props = defineProps({
   challenge: {
     type: Object,
-    required: true
-  }
+    required: true,
+  },
 });
 
-defineEmits(['close']);
+defineEmits(["close"]);
 
 const formatDate = (date: string | Date) => {
-  return new Date(date).toLocaleDateString('default', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit'
+  return new Date(date).toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
   });
 };
 </script>
@@ -138,4 +138,4 @@ const formatDate = (date: string | Date) => {
     transform: translateY(0);
   }
 }
-</style> 
+</style>

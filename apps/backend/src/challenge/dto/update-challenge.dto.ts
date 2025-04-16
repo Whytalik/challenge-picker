@@ -1,5 +1,11 @@
-import { IsString, IsOptional } from 'class-validator';
+import { IsString, IsOptional, IsEnum, IsArray } from 'class-validator';
 import type { ValidationOptions } from 'class-validator';
+
+enum Difficulty {
+  easy = 'easy',
+  medium = 'medium',
+  hard = 'hard',
+}
 
 export class UpdateChallengeDto {
   @IsString({
@@ -13,4 +19,26 @@ export class UpdateChallengeDto {
   } as ValidationOptions)
   @IsOptional()
   description?: string;
+
+  @IsEnum(Difficulty, {
+    message: 'Difficulty must be one of: easy, medium, hard',
+  } as ValidationOptions)
+  @IsOptional()
+  difficulty?: Difficulty;
+
+  @IsArray({
+    message: 'Tags must be an array of strings',
+  } as ValidationOptions)
+  @IsString({
+    each: true,
+    message: 'Each tag must be a string',
+  } as ValidationOptions)
+  @IsOptional()
+  tags?: string[];
+
+  @IsString({
+    message: 'Category must be a string',
+  } as ValidationOptions)
+  @IsOptional()
+  category?: string;
 }

@@ -1,10 +1,47 @@
 import { defineStore } from "pinia";
 import { apiService } from "@/api";
+import type { AxiosError } from "axios";
+
+export type Difficulty = "easy" | "medium" | "hard";
 
 export interface Challenge {
   id: string;
   title: string;
   description: string;
+  difficulty: Difficulty;
+  tags: string[];
+  category?: string;
+}
+
+function handleError(error: unknown): string {
+  if (error && typeof error === "object" && "friendlyMessage" in error) {
+    return error.friendlyMessage as string;
+  }
+
+  if (error instanceof Error) {
+    return error.message;
+  }
+
+  return "An unexpected error occurred";
+}
+
+async function executeApiRequest<T>(
+  requestFn: () => Promise<T>,
+  errorMessage: string,
+  store: { loading: boolean; error?: string }
+): Promise<T> {
+  store.loading = true;
+  store.error = undefined;
+
+  try {
+    return await requestFn();
+  } catch (error) {
+    store.error = handleError(error) || errorMessage;
+    console.error(`API Error: ${errorMessage}`, error);
+    throw error;
+  } finally {
+    store.loading = false;
+  }
 }
 
 export const useChallengeStore = defineStore("challenge", {
@@ -17,120 +54,94 @@ export const useChallengeStore = defineStore("challenge", {
 
   actions: {
     async createChallenge(payload: Omit<Challenge, "id">) {
-      this.loading = true;
-      this.error = undefined;
-      try {
-        const { data } = await apiService.challenges.create(payload);
-        this.challenges.push(data);
-        return data;
-      } catch (error) {
-        const errorMessage =
-          error instanceof Error ? error.message : "Failed to create challenge";
-        this.error = errorMessage;
-        console.error("Error creating challenge:", error);
-        throw error;
-      } finally {
-        this.loading = false;
-      }
+      return executeApiRequest(
+        async () => {
+          const { data } = await apiService.challenges.create(payload);
+          this.challenges.push(data);
+          return data;
+        },
+        "Failed to create challenge",
+        this
+      );
     },
 
     async getRandomChallenge() {
-      this.loading = true;
-      this.error = undefined;
-      try {
-        const { data } = await apiService.challenges.getRandom();
-        this.randomChallenge = data;
-        return data;
-      } catch (error) {
-        const errorMessage =
-          error instanceof Error
-            ? error.message
-            : "Failed to get random challenge";
-        this.error = errorMessage;
-        console.error("Error getting random challenge:", error);
-        throw error;
-      } finally {
-        this.loading = false;
-      }
+      return executeApiRequest(
+        async () => {
+          const { data } = await apiService.challenges.getRandom();
+          this.randomChallenge = data;
+          return data;
+        },
+        "Failed to get random challenge",
+        this
+      );
     },
 
     async getAllChallenges() {
-      this.loading = true;
-      this.error = undefined;
-      try {
-        const { data } = await apiService.challenges.getAll();
-        this.challenges = data;
-        return data;
-      } catch (error) {
-        const errorMessage =
-          error instanceof Error
-            ? error.message
-            : "Failed to get all challenges";
-        this.error = errorMessage;
-        console.error("Error fetching challenges:", error);
-        throw error;
-      } finally {
-        this.loading = false;
-      }
+      return executeApiRequest(
+        async () => {
+          const { data } = await apiService.challenges.getAll();
+          this.challenges = data;
+          return data;
+        },
+        "Failed to get all challenges",
+        this
+      );
     },
 
     async updateChallenge(challenge: Challenge) {
-      this.loading = true;
-      this.error = undefined;
-      try {
-        const updatePayload: { title?: string; description?: string } = {};
-        if (challenge.title) updatePayload.title = challenge.title;
-        if (challenge.description !== undefined)
-          updatePayload.description = challenge.description;
+      return executeApiRequest(
+        async () => {
+          const updatePayload: Partial<Challenge> = {};
+          if (challenge.title) updatePayload.title = challenge.title;
+          if (challenge.description !== undefined)
+            updatePayload.description = challenge.description;
+          if (challenge.difficulty)
+            updatePayload.difficulty = challenge.difficulty;
+          if (challenge.tags) updatePayload.tags = challenge.tags;
+          if (challenge.category !== undefined)
+            updatePayload.category = challenge.category;
 
-        const { data } = await apiService.challenges.update(
-          challenge.id,
-          updatePayload
-        );
+          const { data } = await apiService.challenges.update(
+            challenge.id,
+            updatePayload
+          );
 
-        const index = this.challenges.findIndex((c) => c.id === challenge.id);
-        if (index !== -1) {
-          this.challenges.splice(index, 1, data);
-        }
+          const index = this.challenges.findIndex((c) => c.id === challenge.id);
+          if (index !== -1) {
+            this.challenges.splice(index, 1, data);
+          }
 
-        if (this.randomChallenge && this.randomChallenge.id === challenge.id) {
-          this.randomChallenge = data;
-        }
+          if (
+            this.randomChallenge &&
+            this.randomChallenge.id === challenge.id
+          ) {
+            this.randomChallenge = data;
+          }
 
-        return data;
-      } catch (error) {
-        const errorMessage =
-          error instanceof Error ? error.message : "Failed to update challenge";
-        this.error = errorMessage;
-        console.error("Error updating challenge:", error);
-        throw error;
-      } finally {
-        this.loading = false;
-      }
+          return data;
+        },
+        "Failed to update challenge",
+        this
+      );
     },
 
     async deleteChallenge(id: string) {
-      this.loading = true;
-      this.error = undefined;
-      try {
-        await apiService.challenges.delete(id);
-        
-        this.challenges = this.challenges.filter(c => c.id !== id);
-        
-        if (this.randomChallenge && this.randomChallenge.id === id) {
-          this.randomChallenge = null;
-        }
-        
-        return true;
-      } catch (error) {
-        const errorMessage =
-          error instanceof Error ? error.message : "Failed to delete challenge";
-        this.error = errorMessage;
-        console.error("Error deleting challenge:", error);
-        throw error;
-      } finally {
-        this.loading = false;
-      }
+      return executeApiRequest(
+        async () => {
+          await apiService.challenges.delete(id);
+
+          this.challenges = this.challenges.filter((c) => c.id !== id);
+
+          if (this.randomChallenge && this.randomChallenge.id === id) {
+            this.randomChallenge = null;
+          }
+
+          return true;
+        },
+        "Failed to delete challenge",
+        this
+      );
     },
   },
 });
