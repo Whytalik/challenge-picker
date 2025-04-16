@@ -4,19 +4,19 @@
   font-weight: 400;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  
+
   /* Color scheme */
   --color-primary: #555555;
   --color-primary-light: #777777;
   --color-primary-dark: #333333;
-  
-  --color-secondary: #8a2be2; /* Purple */
+
+  --color-secondary: #8a2be2;
   --color-secondary-light: #9d4edd;
   --color-secondary-dark: #6a0dad;
-  
-  --color-tertiary: #ffffff; /* White */
-  
-  --color-error: #FF8C00; /* Deep Orange instead of red */
+
+  --color-tertiary: #ffffff;
+
+  --color-error: #ff8c00;
   --color-background: #f9f9f9;
 }
 

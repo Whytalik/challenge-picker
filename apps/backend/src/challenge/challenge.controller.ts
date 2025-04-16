@@ -11,6 +11,11 @@ export class ChallengeController {
     return this.challengeService.create(createChallengeDto);
   }
 
+  @Get()
+  getAll() {
+    return this.challengeService.getAll();
+  }
+
   @Get('random')
   getRandom() {
     return this.challengeService.getRandom();

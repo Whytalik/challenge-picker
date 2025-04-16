@@ -12,6 +12,10 @@ export class ChallengeService {
     });
   }
 
+  async getAll() {
+    return this.prisma.challenge.findMany();
+  }
+
   async getRandom() {
     const count = await this.prisma.challenge.count();
 
