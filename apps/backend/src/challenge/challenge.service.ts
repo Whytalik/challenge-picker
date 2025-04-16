@@ -8,8 +8,13 @@ export class ChallengeService {
   constructor(private prisma: PrismaService) {}
 
   async create(createChallengeDto: CreateChallengeDto) {
+    const data = {
+      title: createChallengeDto.title,
+      description: createChallengeDto.description || '',
+    };
+
     return this.prisma.challenge.create({
-      data: createChallengeDto,
+      data,
     });
   }
 
@@ -48,6 +53,22 @@ export class ChallengeService {
     return this.prisma.challenge.update({
       where: { id: numericId },
       data: updateChallengeDto,
+    });
+  }
+
+  async delete(id: string) {
+    const numericId = parseInt(id, 10);
+
+    const challenge = await this.prisma.challenge.findUnique({
+      where: { id: numericId },
+    });
+
+    if (!challenge) {
+      throw new NotFoundException(`Challenge with ID ${id} not found`);
+    }
+
+    return this.prisma.challenge.delete({
+      where: { id: numericId },
     });
   }
 }

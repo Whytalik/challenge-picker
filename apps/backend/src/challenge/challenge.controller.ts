@@ -1,4 +1,12 @@
-import { Controller, Get, Post, Body, Patch, Param } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+} from '@nestjs/common';
 import { ChallengeService } from './challenge.service';
 import { CreateChallengeDto } from './dto/create-challenge.dto';
 import { UpdateChallengeDto } from './dto/update-challenge.dto';
@@ -28,5 +36,10 @@ export class ChallengeController {
     @Body() updateChallengeDto: UpdateChallengeDto,
   ) {
     return this.challengeService.update(id, updateChallengeDto);
+  }
+
+  @Delete(':id')
+  delete(@Param('id') id: string) {
+    return this.challengeService.delete(id);
   }
 }

@@ -10,28 +10,60 @@
 
       <form class="challenge-form" @submit.prevent="handleSubmit" novalidate>
         <div class="form-group">
-          <label class="form-label" for="title">Challenge Title:</label>
+          <div class="label-with-counter">
+            <label class="form-label" for="title">Challenge Title:</label>
+            <span
+              class="character-count"
+              :class="{ 'limit-reached': form.title.length >= 100 }"
+            >
+              {{ form.title.length }}/100
+            </span>
+          </div>
           <input
             class="form-input"
-            :class="{ 'input-error': titleError }"
+            :class="{ 'input-error': v$.title.$error }"
             id="title"
             v-model="form.title"
             type="text"
-            @blur="validateTitle"
+            @blur="v$.title.$touch()"
+            maxlength="100"
             required
           />
-          <p v-if="titleError" class="error-message">{{ titleError }}</p>
+          <div v-if="v$.title.$error" class="error-message">
+            <p v-if="v$.title.required.$invalid">
+              Назва челенджу є обов'язковою
+            </p>
+            <p v-else-if="v$.title.maxLength.$invalid">
+              Назва не може перевищувати 100 символів
+            </p>
+          </div>
         </div>
 
         <div class="form-group">
-          <label class="form-label" for="description"
-            >Description (optional):</label
-          >
+          <div class="label-with-counter">
+            <label class="form-label" for="description"
+              >Description (optional):</label
+            >
+            <span
+              class="character-count"
+              :class="{ 'limit-reached': form.description.length >= 300 }"
+            >
+              {{ form.description.length }}/300
+            </span>
+          </div>
           <textarea
             class="form-textarea"
+            :class="{ 'input-error': v$.description.$error }"
             id="description"
             v-model="form.description"
+            @blur="v$.description.$touch()"
+            maxlength="300"
           ></textarea>
+          <div v-if="v$.description.$error" class="error-message">
+            <p v-if="v$.description.maxLength.$invalid">
+              Опис не може перевищувати 300 символів
+            </p>
+          </div>
         </div>
 
         <div class="form-actions">
@@ -41,7 +73,7 @@
           <button
             class="submit-button"
             type="submit"
-            :disabled="!isTitleValid || isLoading"
+            :disabled="v$.$invalid || isLoading"
           >
             <Spinner v-if="isLoading">Loading...</Spinner>
             <span v-else>{{
@@ -59,7 +91,9 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, ref, computed, onMounted } from "vue";
+import { reactive, computed, onMounted } from "vue";
+import { useVuelidate } from "@vuelidate/core";
+import { required, maxLength } from "@vuelidate/validators";
 import Spinner from "./Spinner.vue";
 import type { Challenge } from "@/stores/useChallengeStore";
 
@@ -88,21 +122,22 @@ const form = reactive({
   description: "",
 });
 
-const titleError = ref("");
-const descriptionError = ref("");
-const isTitleValid = computed(() => form.title.trim() !== "");
-
-const validateTitle = () => {
-  if (!form.title.trim()) {
-    titleError.value = "Title cannot be empty";
-    return false;
-  }
-  titleError.value = "";
-  return true;
+const rules = {
+  title: {
+    required,
+    maxLength: maxLength(100),
+  },
+  description: {
+    maxLength: maxLength(300),
+  },
 };
 
-const handleSubmit = () => {
-  if (!validateTitle()) {
+const v$ = useVuelidate(rules, form);
+
+const handleSubmit = async () => {
+  const isFormValid = await v$.value.$validate();
+
+  if (!isFormValid) {
     return;
   }
 
@@ -124,7 +159,7 @@ const onCancel = () => {
 onMounted(() => {
   if (isEditMode.value && props.challenge) {
     form.title = props.challenge.title;
-    form.description = props.challenge.description;
+    form.description = props.challenge.description || "";
   }
 });
 </script>
@@ -196,11 +231,31 @@ onMounted(() => {
   width: 100%;
 }
 
-.form-label {
-  display: block;
+.label-with-counter {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
   margin-bottom: 0.5rem;
+}
+
+.form-label {
   color: var(--color-primary-dark);
   font-weight: 500;
+  margin: 0;
+}
+
+.character-count {
+  font-size: 0.8rem;
+  color: var(--color-primary);
+  font-weight: normal;
+  min-width: 45px;
+  text-align: right;
+}
+
+.limit-reached {
+  color: var(--color-error);
+  font-weight: bold;
 }
 
 .form-input,
@@ -245,11 +300,16 @@ onMounted(() => {
   margin-bottom: 0;
 }
 
+.error-message p {
+  margin: 0.25rem 0;
+}
+
 .form-actions {
   display: flex;
   justify-content: flex-end;
   gap: 1rem;
   margin-top: 2rem;
+  flex-wrap: nowrap;
 }
 
 .cancel-button {
@@ -258,13 +318,8 @@ onMounted(() => {
   padding: 0.75rem 1.25rem;
   border: none;
   border-radius: 4px;
-  cursor: pointer;
-  font-size: 1rem;
-  transition: background-color 0.2s;
-}
-
-.cancel-button:hover {
-  background-color: var(--color-primary);
+  white-space: nowrap;
+  min-width: 100px;
 }
 
 .submit-button {

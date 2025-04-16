@@ -108,5 +108,29 @@ export const useChallengeStore = defineStore("challenge", {
         this.loading = false;
       }
     },
+
+    async deleteChallenge(id: string) {
+      this.loading = true;
+      this.error = undefined;
+      try {
+        await apiService.challenges.delete(id);
+        
+        this.challenges = this.challenges.filter(c => c.id !== id);
+        
+        if (this.randomChallenge && this.randomChallenge.id === id) {
+          this.randomChallenge = null;
+        }
+        
+        return true;
+      } catch (error) {
+        const errorMessage =
+          error instanceof Error ? error.message : "Failed to delete challenge";
+        this.error = errorMessage;
+        console.error("Error deleting challenge:", error);
+        throw error;
+      } finally {
+        this.loading = false;
+      }
+    },
   },
 });

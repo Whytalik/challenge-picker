@@ -58,8 +58,10 @@
 
     <ConfirmModal
       v-if="showReplaceConfirmation"
-      title="Replace challenge?"
-      message="Are you sure you want to change to a different challenge? This can only be done once."
+      title="Change Challenge"
+      message="Are you sure you want to replace the current challenge? This can only be done once."
+      confirmText="✅ Replace"
+      cancelText="❌ Cancel"
       @confirm="replaceChallenge"
       @cancel="showReplaceConfirmation = false"
     />
@@ -397,7 +399,7 @@ onMounted(() => {
 }
 
 .challenge-day-title {
-  font-size: 2.5rem; /* text-4xl equivalent */
+  font-size: 2.5rem;
   font-weight: bold;
   margin-bottom: 1.5rem;
   color: var(--color-primary-dark);
@@ -405,7 +407,7 @@ onMounted(() => {
 }
 
 .challenge-day-description {
-  font-size: 1.25rem; /* text-xl equivalent */
+  font-size: 1.25rem;
   margin-bottom: 2rem;
   color: var(--color-primary);
   max-width: 80%;
@@ -439,7 +441,7 @@ onMounted(() => {
 }
 
 .complete-button {
-  background-color: #4caf50; /* Green color for completion */
+  background-color: #4caf50;
   color: white;
 }
 

@@ -1,32 +1,66 @@
 <template>
   <div class="confirm-modal-overlay" @click.self="onCancel">
-    <div class="confirm-modal-container">
-      <div class="modal-header">
+    <div class="confirm-modal-container" :class="{ danger: type === 'danger' }">
+      <div class="modal-header" :class="{ 'danger-header': type === 'danger' }">
         <h2 class="modal-title">{{ title }}</h2>
         <button class="close-button" @click="onCancel">&times;</button>
       </div>
 
       <div class="modal-content">
-        <p class="modal-message">{{ message }}</p>
+        <p class="modal-message" :class="{ 'warning-text': type === 'danger' }">
+          {{ message }}
+        </p>
       </div>
 
       <div class="modal-actions">
-        <button class="cancel-button" @click="onCancel">Cancel</button>
-        <button class="confirm-button" @click="onConfirm">Confirm</button>
+        <button class="cancel-button" @click="onCancel">
+          {{ cancelText }}
+        </button>
+        <button
+          :class="[type === 'danger' ? 'delete-button' : 'confirm-button']"
+          @click="onConfirm"
+          :disabled="isLoading"
+        >
+          <Spinner v-if="isLoading">{{ loadingText }}</Spinner>
+          <span v-else>{{ confirmText }}</span>
+        </button>
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
+import Spinner from "./Spinner.vue";
+
 defineProps({
   title: {
     type: String,
-    default: "Confirmation",
+    default: "Підтвердження",
   },
   message: {
     type: String,
     required: true,
+  },
+  type: {
+    type: String,
+    default: "default",
+    validator: (value: string) => ["default", "danger"].includes(value),
+  },
+  confirmText: {
+    type: String,
+    default: "✅ Підтвердити",
+  },
+  cancelText: {
+    type: String,
+    default: "❌ Скасувати",
+  },
+  loadingText: {
+    type: String,
+    default: "Обробка...",
+  },
+  isLoading: {
+    type: Boolean,
+    default: false,
   },
 });
 
@@ -61,7 +95,7 @@ const onCancel = () => {
   border-radius: 8px;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
   width: 90%;
-  max-width: 400px;
+  max-width: 500px;
   animation: slideUp 0.3s ease;
 }
 
@@ -74,6 +108,10 @@ const onCancel = () => {
   background-color: var(--color-secondary);
   border-radius: 8px 8px 0 0;
   color: var(--color-tertiary);
+}
+
+.danger-header {
+  background-color: #e53935;
 }
 
 .modal-title {
@@ -99,6 +137,7 @@ const onCancel = () => {
 
 .modal-content {
   padding: 1.5rem;
+  text-align: center;
 }
 
 .modal-message {
@@ -106,6 +145,10 @@ const onCancel = () => {
   font-size: 1.1rem;
   color: var(--color-primary-dark);
   text-align: center;
+}
+
+.warning-text {
+  font-weight: 500;
 }
 
 .modal-actions {
@@ -145,6 +188,28 @@ const onCancel = () => {
 
 .confirm-button:hover {
   background-color: var(--color-secondary-dark);
+}
+
+.delete-button {
+  background-color: #e53935;
+  color: var(--color-tertiary);
+  padding: 0.75rem 1.25rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: 500;
+  transition: background-color 0.2s;
+}
+
+.delete-button:hover {
+  background-color: #c62828;
+}
+
+.delete-button:disabled,
+.confirm-button:disabled {
+  background-color: var(--color-primary-light);
+  cursor: not-allowed;
 }
 
 @keyframes fadeIn {

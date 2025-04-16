@@ -17,7 +17,11 @@
           :key="challenge.id"
           class="challenge-item-container"
         >
-          <ChallengeItem :challenge="challenge" @edit="openEditModal" />
+          <ChallengeItem
+            :challenge="challenge"
+            @edit="openEditModal"
+            @delete="openDeleteModal"
+          />
         </li>
       </ul>
     </section>
@@ -33,10 +37,24 @@
       @cancel="closeEditModal"
     />
 
+    <!-- Delete Challenge Confirmation Modal -->
+    <ConfirmModal
+      v-if="isDeleteModalVisible"
+      title="Delete confirmation"
+      message="❗️Are you sure you want to delete this challenge? This action cannot be undone."
+      type="danger"
+      confirmText="✅ Delete"
+      cancelText="❌ Cancel"
+      loadingText="Deleting..."
+      :is-loading="store.loading && loadingType === 'delete'"
+      @confirm="handleDeleteConfirm"
+      @cancel="closeDeleteModal"
+    />
+
     <!-- Toast Notification -->
     <Toast
       :show="showToast"
-      message="Challenge successfully updated! 🎯"
+      :message="toastMessage"
       type="success"
       :duration="3000"
       @close="closeToast"
@@ -50,14 +68,17 @@ import { useChallengeStore } from "@/stores/useChallengeStore";
 import Spinner from "@/components/Spinner.vue";
 import ChallengeItem from "@/components/ChallengeItem.vue";
 import ChallengeForm from "@/components/ChallengeForm.vue";
+import ConfirmModal from "@/components/ConfirmModal.vue";
 import Toast from "@/components/Toast.vue";
 import type { Challenge } from "@/stores/useChallengeStore";
 
 const store = useChallengeStore();
-const loadingType = ref<"list" | "edit">("list");
+const loadingType = ref<"list" | "edit" | "delete">("list");
 const isEditModalVisible = ref(false);
+const isDeleteModalVisible = ref(false);
 const selectedChallenge = ref<Challenge | null>(null);
 const showToast = ref(false);
+const toastMessage = ref("Challenge successfully updated! 🎯");
 
 const fetchAllChallenges = async () => {
   loadingType.value = "list";
@@ -78,14 +99,39 @@ const closeEditModal = () => {
   selectedChallenge.value = null;
 };
 
+const openDeleteModal = (challenge: Challenge) => {
+  selectedChallenge.value = challenge;
+  isDeleteModalVisible.value = true;
+};
+
+const closeDeleteModal = () => {
+  isDeleteModalVisible.value = false;
+  selectedChallenge.value = null;
+};
+
 const handleEditSubmit = async (updatedChallenge: Challenge) => {
   loadingType.value = "edit";
   try {
     await store.updateChallenge(updatedChallenge);
     closeEditModal();
+    toastMessage.value = "Challenge successfully updated! 🎯";
     showToast.value = true;
   } catch (error) {
     console.error("Error updating challenge:", error);
+  }
+};
+
+const handleDeleteConfirm = async () => {
+  if (!selectedChallenge.value) return;
+
+  loadingType.value = "delete";
+  try {
+    await store.deleteChallenge(selectedChallenge.value.id);
+    closeDeleteModal();
+    toastMessage.value = "Challenge successfully deleted! 🗑️";
+    showToast.value = true;
+  } catch (error) {
+    console.error("Error deleting challenge:", error);
   }
 };
 
@@ -93,7 +139,6 @@ const closeToast = () => {
   showToast.value = false;
 };
 
-// Fetch all challenges when component is mounted
 onMounted(() => {
   fetchAllChallenges();
 });

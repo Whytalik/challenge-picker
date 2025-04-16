@@ -123,17 +123,17 @@ watch(
 
 .toast-container.success {
   border-left-color: var(--color-secondary);
-  background-color: rgba(138, 43, 226, 0.1); /* Purple with opacity */
+  background-color: rgba(138, 43, 226, 0.1);
 }
 
 .toast-container.error {
   border-left-color: var(--color-error);
-  background-color: rgba(255, 140, 0, 0.1); /* Deep orange with opacity */
+  background-color: rgba(255, 140, 0, 0.1);
 }
 
 .toast-container.info {
   border-left-color: var(--color-primary);
-  background-color: rgba(85, 85, 85, 0.1); /* Gray with opacity */
+  background-color: rgba(85, 85, 85, 0.1);
 }
 
 .toast-icon {
@@ -182,7 +182,6 @@ watch(
   color: var(--color-primary-dark);
 }
 
-/* Animation */
 .toast-enter-active,
 .toast-leave-active {
   transition: all 0.3s ease;
