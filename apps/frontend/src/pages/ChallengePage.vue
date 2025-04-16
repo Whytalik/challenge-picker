@@ -7,25 +7,14 @@
         <Spinner>Loading challenge...</Spinner>
       </div>
 
-      <div v-else-if="isChallengeDone" class="challenge-done">
+      <div
+        v-else-if="isChallengeDone || !store.randomChallenge"
+        class="challenge-done"
+      >
         <div class="completed-message">
           <div class="completion-icon">✅</div>
           <h3>Challenge completed for today!</h3>
           <p class="comeback-text">Come back tomorrow for a new challenge.</p>
-        </div>
-      </div>
-
-      <div v-else-if="!hasChallenge" class="no-challenge">
-        <div class="action-wrapper">
-          <p class="text-center mb-md">
-            Ready for a challenge? Click the button below to get one!
-          </p>
-          <button
-            @click="handleGetChallenge"
-            class="btn btn-primary get-challenge-button"
-          >
-            Get a Challenge 🎯
-          </button>
         </div>
       </div>
 
@@ -57,6 +46,9 @@
           <button
             @click="handleReplaceChallenge"
             class="btn btn-secondary replace-button"
+            :class="{ 'disabled': hasReplacedChallenge }"
+            :disabled="hasReplacedChallenge"
+            :title="hasReplacedChallenge ? 'You can only replace a challenge once per day' : 'Get a different challenge'"
           >
             🔄 Different Challenge
           </button>
@@ -70,7 +62,14 @@
       </div>
     </div>
 
-    <!-- Toast Notification -->
+    <!-- Congratulations Modal -->
+    <CongratulationsModal
+      v-if="showCongratulations"
+      :message="challengeMessage"
+      @close="closeCongratulations"
+    />
+
+    <!-- Toast Notification (for non-completion messages) -->
     <Toast
       :show="showToast"
       :message="toastMessage"
@@ -85,38 +84,27 @@
 import { ref, onMounted, computed } from "vue";
 import { useChallengeStore } from "@/stores/useChallengeStore";
 import Spinner from "@/components/Spinner.vue";
-import ConfirmModal from "@/components/ConfirmModal.vue";
 import CongratulationsModal from "@/components/CongratulationsModal.vue";
 import Toast from "@/components/Toast.vue";
 
 const store = useChallengeStore();
 const loadingType = ref<"random">("random");
-const canReplaceChallenge = ref(true);
-const showReplaceConfirmation = ref(false);
 const showCongratulations = ref(false);
 const challengeDate = ref(new Date());
 const completedChallengesCount = ref(0);
 const showToast = ref(false);
-const toastMessage = ref('');
-const toastType = ref('success');
+const toastMessage = ref("");
+const toastType = ref("success");
+const hasReplacedChallenge = ref(false);
 
-const challengeMessage = computed(() =>
-  store.randomChallenge?.title
-    ? `Challenge "${store.randomChallenge.title}" successfully completed!`
-    : "Challenge completed!"
+const challengeMessage = computed(
+  () =>
+    "✅\nChallenge completed for today!\nCome back tomorrow for a new challenge."
 );
-
-const formattedChallengeDate = computed(() => {
-  return challengeDate.value.toLocaleDateString("en-US", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-  });
-});
 
 const expiryTime = computed(() => {
   if (!store.randomChallenge) return null;
-  
+
   const now = new Date();
   const endOfDay = new Date(
     now.getFullYear(),
@@ -126,48 +114,23 @@ const expiryTime = computed(() => {
     59,
     59
   );
-  
+
   return endOfDay.getTime() - now.getTime();
 });
 
 const isExpiringSoon = computed(() => {
   if (!expiryTime.value) return false;
-  // Return true if less than 3 hours remaining
   return expiryTime.value < 3 * 60 * 60 * 1000;
-});
-
-const isExpiringToday = computed(() => {
-  const now = new Date();
-  const todayEnd = new Date(
-    now.getFullYear(),
-    now.getMonth(),
-    now.getDate(),
-    23,
-    59,
-    59
-  );
-  const challengeEndDate = new Date(challengeDate.value);
-  challengeEndDate.setHours(23, 59, 59);
-
-  return (
-    challengeEndDate.getDate() === todayEnd.getDate() &&
-    challengeEndDate.getMonth() === todayEnd.getMonth() &&
-    challengeEndDate.getFullYear() === todayEnd.getFullYear()
-  );
 });
 
 const isChallengeDone = computed(() => {
   return isChallengeDoneToday();
 });
 
-const hasChallenge = computed(() => {
-  return store.randomChallenge !== null;
-});
-
 const formatRemainingTime = (ms: number) => {
   const hours = Math.floor(ms / (1000 * 60 * 60));
   const minutes = Math.floor((ms % (1000 * 60 * 60)) / (1000 * 60));
-  
+
   if (hours > 0) {
     return `${hours}h ${minutes}m`;
   } else {
@@ -226,13 +189,26 @@ const getRandomChallenge = async () => {
     }
   } catch (error) {
     console.error("Error getting random challenge:", error);
+    showToastMessage("Failed to get challenge. Please try again.", "error");
   }
 };
 
 const replaceChallenge = async () => {
-  showReplaceConfirmation.value = false;
-  await getRandomChallenge();
-  canReplaceChallenge.value = false;
+  if (hasReplacedChallenge.value) {
+    showToastMessage("You can only replace a challenge once per day.", "warning");
+    return;
+  }
+  
+  try {
+    await getRandomChallenge();
+    showToastMessage("Challenge replaced successfully!", "success");
+    hasReplacedChallenge.value = true;
+    
+    // Save to localStorage that the challenge has been replaced
+    localStorage.setItem("hasReplacedChallenge", "true");
+  } catch (error) {
+    showToastMessage("Failed to replace challenge.", "error");
+  }
 };
 
 const challengeCompleted = () => {
@@ -286,30 +262,15 @@ const isChallengeDoneToday = () => {
   return false;
 };
 
-const handleGetChallenge = async () => {
-  try {
-    await getRandomChallenge();
-    showToastMessage('Challenge retrieved successfully!', 'success');
-  } catch (error) {
-    showToastMessage('Failed to get challenge. Please try again.', 'error');
-  }
-};
-
 const handleReplaceChallenge = async () => {
-  try {
-    await replaceChallenge();
-    showToastMessage('Challenge replaced successfully!', 'success');
-  } catch (error) {
-    showToastMessage('Failed to replace challenge.', 'error');
-  }
+  await replaceChallenge();
 };
 
 const handleCompleteChallenge = () => {
   challengeCompleted();
-  showToastMessage('Challenge completed! Great job!', 'success');
 };
 
-const showToastMessage = (message: string, type: string = 'success') => {
+const showToastMessage = (message: string, type: string = "success") => {
   toastMessage.value = message;
   toastType.value = type;
   showToast.value = true;
@@ -324,6 +285,12 @@ onMounted(() => {
     localStorage.getItem("completedChallengesCount") || "0"
   );
 
+  // Check if challenge has been replaced today
+  const savedReplacementStatus = localStorage.getItem("hasReplacedChallenge");
+  if (savedReplacementStatus === "true") {
+    hasReplacedChallenge.value = true;
+  }
+
   if (isChallengeDoneToday()) {
     store.randomChallenge = null;
     return;
@@ -333,6 +300,9 @@ onMounted(() => {
 
   if (hasExpiredChallenge) {
     getRandomChallenge();
+    // Reset replacement status for a new day
+    hasReplacedChallenge.value = false;
+    localStorage.removeItem("hasReplacedChallenge");
   } else {
     const savedChallenge = localStorage.getItem("currentChallenge");
     const savedChallengeDate = localStorage.getItem("challengeDate");
@@ -342,6 +312,9 @@ onMounted(() => {
       challengeDate.value = new Date(savedChallengeDate);
     } else {
       getRandomChallenge();
+      // Reset replacement status for a new challenge
+      hasReplacedChallenge.value = false;
+      localStorage.removeItem("hasReplacedChallenge");
     }
   }
 });
@@ -479,6 +452,17 @@ onMounted(() => {
 .complete-button:hover {
   background-color: #3e8e41;
   transform: translateY(-2px);
+}
+
+.replace-button.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background-color: var(--color-primary-light);
+}
+
+.replace-button.disabled:hover {
+  background-color: var(--color-primary-light);
+  transform: none;
 }
 
 @keyframes fadeIn {

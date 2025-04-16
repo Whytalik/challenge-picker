@@ -42,7 +42,7 @@
 
 <script setup lang="ts">
 import { computed } from "vue";
-import type { Challenge, Difficulty } from "@/stores/useChallengeStore";
+import type { Challenge } from "@/stores/useChallengeStore";
 
 const props = defineProps<{
   challenge: Challenge;
