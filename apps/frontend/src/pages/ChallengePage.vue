@@ -1,7 +1,5 @@
 <template>
   <div class="challenge-page">
-    <h1 class="page-title">Challenge Picker</h1>
-
     <div class="challenge-of-day-container">
       <div v-if="!store.randomChallenge && !store.loading" class="no-challenge">
         <div class="completed-message">
@@ -58,7 +56,6 @@
       </div>
     </div>
 
-    <!-- Challenge Replacement Confirmation Modal -->
     <ConfirmModal
       v-if="showReplaceConfirmation"
       title="Replace challenge?"
@@ -67,7 +64,6 @@
       @cancel="showReplaceConfirmation = false"
     />
 
-    <!-- Challenge Completion Congratulations Modal -->
     <CongratulationsModal
       v-if="showCongratulations"
       :message="challengeMessage"
@@ -106,7 +102,6 @@ const formattedChallengeDate = computed(() => {
   return `${day}.${month}.${year}`;
 });
 
-// Check if the challenge is expiring today (end of day)
 const isExpiringToday = computed(() => {
   const now = new Date();
   const todayEnd = new Date(
@@ -127,7 +122,6 @@ const isExpiringToday = computed(() => {
   );
 });
 
-// Check if a saved challenge has expired (was from a previous day)
 const checkExpiredChallenge = () => {
   const savedChallengeDate = localStorage.getItem("challengeDate");
   const savedChallenge = localStorage.getItem("currentChallenge");
@@ -141,7 +135,6 @@ const checkExpiredChallenge = () => {
       parsedDate.getMonth() !== today.getMonth() ||
       parsedDate.getFullYear() !== today.getFullYear()
     ) {
-      // Mark the challenge as not completed
       const nonCompletedChallenges = JSON.parse(
         localStorage.getItem("nonCompletedChallenges") || "[]"
       );
@@ -225,14 +218,12 @@ const closeCongratulations = () => {
   store.randomChallenge = null;
 };
 
-// Check if today's challenge has been completed
 const isChallengeDoneToday = () => {
   const lastCompletionDate = localStorage.getItem("lastCompletionDate");
   if (lastCompletionDate) {
     const completionDate = new Date(lastCompletionDate);
     const today = new Date();
 
-    // Check if the completion was today
     return (
       completionDate.getDate() === today.getDate() &&
       completionDate.getMonth() === today.getMonth() &&
@@ -242,15 +233,12 @@ const isChallengeDoneToday = () => {
   return false;
 };
 
-// Fetch a random challenge when component is mounted
 onMounted(() => {
   completedChallengesCount.value = parseInt(
     localStorage.getItem("completedChallengesCount") || "0"
   );
 
-  // Check if challenge was completed today
   if (isChallengeDoneToday()) {
-    // If completed today, don't show a new challenge
     store.randomChallenge = null;
     return;
   }

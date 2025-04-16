@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateChallengeDto } from './dto/create-challenge.dto';
+import { UpdateChallengeDto } from './dto/update-challenge.dto';
 
 @Injectable()
 export class ChallengeService {
@@ -31,5 +32,22 @@ export class ChallengeService {
     });
 
     return challenge;
+  }
+
+  async update(id: string, updateChallengeDto: UpdateChallengeDto) {
+    const numericId = parseInt(id, 10);
+
+    const challenge = await this.prisma.challenge.findUnique({
+      where: { id: numericId },
+    });
+
+    if (!challenge) {
+      throw new NotFoundException(`Challenge with ID ${id} not found`);
+    }
+
+    return this.prisma.challenge.update({
+      where: { id: numericId },
+      data: updateChallengeDto,
+    });
   }
 }

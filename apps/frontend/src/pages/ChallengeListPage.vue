@@ -17,10 +17,30 @@
           :key="challenge.id"
           class="challenge-item-container"
         >
-          <ChallengeItem :challenge="challenge" />
+          <ChallengeItem :challenge="challenge" @edit="openEditModal" />
         </li>
       </ul>
     </section>
+
+    <!-- Edit Challenge Modal -->
+    <ChallengeForm
+      v-if="isEditModalVisible && selectedChallenge"
+      :challenge="selectedChallenge"
+      :is-loading="store.loading"
+      :error="store.error"
+      mode="edit"
+      @submit="handleEditSubmit"
+      @cancel="closeEditModal"
+    />
+
+    <!-- Toast Notification -->
+    <Toast
+      :show="showToast"
+      message="Challenge successfully updated! 🎯"
+      type="success"
+      :duration="3000"
+      @close="closeToast"
+    />
   </div>
 </template>
 
@@ -29,9 +49,15 @@ import { ref, onMounted } from "vue";
 import { useChallengeStore } from "@/stores/useChallengeStore";
 import Spinner from "@/components/Spinner.vue";
 import ChallengeItem from "@/components/ChallengeItem.vue";
+import ChallengeForm from "@/components/ChallengeForm.vue";
+import Toast from "@/components/Toast.vue";
+import type { Challenge } from "@/stores/useChallengeStore";
 
 const store = useChallengeStore();
-const loadingType = ref<"list">("list");
+const loadingType = ref<"list" | "edit">("list");
+const isEditModalVisible = ref(false);
+const selectedChallenge = ref<Challenge | null>(null);
+const showToast = ref(false);
 
 const fetchAllChallenges = async () => {
   loadingType.value = "list";
@@ -40,6 +66,31 @@ const fetchAllChallenges = async () => {
   } catch (error) {
     console.error("Error fetching challenges:", error);
   }
+};
+
+const openEditModal = (challenge: Challenge) => {
+  selectedChallenge.value = challenge;
+  isEditModalVisible.value = true;
+};
+
+const closeEditModal = () => {
+  isEditModalVisible.value = false;
+  selectedChallenge.value = null;
+};
+
+const handleEditSubmit = async (updatedChallenge: Challenge) => {
+  loadingType.value = "edit";
+  try {
+    await store.updateChallenge(updatedChallenge);
+    closeEditModal();
+    showToast.value = true;
+  } catch (error) {
+    console.error("Error updating challenge:", error);
+  }
+};
+
+const closeToast = () => {
+  showToast.value = false;
 };
 
 // Fetch all challenges when component is mounted

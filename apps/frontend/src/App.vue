@@ -1,41 +1,3 @@
-<script setup lang="ts">
-import { RouterView } from "vue-router";
-import { ref } from "vue";
-import ChallengeForm from "@/components/ChallengeForm.vue";
-import { useChallengeStore, type Challenge } from "@/stores/useChallengeStore";
-import Toast from "@/components/Toast.vue";
-
-const isFormVisible = ref(false);
-const showToast = ref(false);
-const store = useChallengeStore();
-
-const toggleFormVisibility = () => {
-  isFormVisible.value = !isFormVisible.value;
-};
-
-const hideForm = () => {
-  isFormVisible.value = false;
-};
-
-const handleSubmit = async (formData: Omit<Challenge, "id">) => {
-  try {
-    await store.createChallenge({
-      title: formData.title,
-      description: formData.description,
-    });
-
-    isFormVisible.value = false;
-    showToast.value = true;
-  } catch (error) {
-    console.error("Error creating challenge:", error);
-  }
-};
-
-const closeToast = () => {
-  showToast.value = false;
-};
-</script>
-
 <template>
   <div class="app-container">
     <header class="app-header">
@@ -89,6 +51,44 @@ const closeToast = () => {
     />
   </div>
 </template>
+
+<script setup lang="ts">
+import { RouterView } from "vue-router";
+import { ref } from "vue";
+import ChallengeForm from "@/components/ChallengeForm.vue";
+import { useChallengeStore, type Challenge } from "@/stores/useChallengeStore";
+import Toast from "@/components/Toast.vue";
+
+const isFormVisible = ref(false);
+const showToast = ref(false);
+const store = useChallengeStore();
+
+const toggleFormVisibility = () => {
+  isFormVisible.value = !isFormVisible.value;
+};
+
+const hideForm = () => {
+  isFormVisible.value = false;
+};
+
+const handleSubmit = async (formData: Omit<Challenge, "id">) => {
+  try {
+    await store.createChallenge({
+      title: formData.title,
+      description: formData.description,
+    });
+
+    isFormVisible.value = false;
+    showToast.value = true;
+  } catch (error) {
+    console.error("Error creating challenge:", error);
+  }
+};
+
+const closeToast = () => {
+  showToast.value = false;
+};
+</script>
 
 <style scoped>
 .app-container {

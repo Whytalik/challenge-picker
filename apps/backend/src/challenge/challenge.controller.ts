@@ -1,6 +1,7 @@
-import { Controller, Get, Post, Body } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param } from '@nestjs/common';
 import { ChallengeService } from './challenge.service';
 import { CreateChallengeDto } from './dto/create-challenge.dto';
+import { UpdateChallengeDto } from './dto/update-challenge.dto';
 
 @Controller('challenge')
 export class ChallengeController {
@@ -19,5 +20,13 @@ export class ChallengeController {
   @Get('random')
   getRandom() {
     return this.challengeService.getRandom();
+  }
+
+  @Patch(':id')
+  update(
+    @Param('id') id: string,
+    @Body() updateChallengeDto: UpdateChallengeDto,
+  ) {
+    return this.challengeService.update(id, updateChallengeDto);
   }
 }

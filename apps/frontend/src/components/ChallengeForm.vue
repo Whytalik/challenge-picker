@@ -2,7 +2,9 @@
   <div class="challenge-form-overlay" @click.self="onCancel">
     <div class="challenge-form-container">
       <div class="form-header">
-        <h2 class="form-title">Create New Challenge</h2>
+        <h2 class="form-title">
+          {{ isEditMode ? "Edit Challenge" : "Create New Challenge" }}
+        </h2>
         <button class="close-button" @click="onCancel">&times;</button>
       </div>
 
@@ -22,12 +24,13 @@
         </div>
 
         <div class="form-group">
-          <label class="form-label" for="description">Description:</label>
+          <label class="form-label" for="description"
+            >Description (optional):</label
+          >
           <textarea
             class="form-textarea"
             id="description"
             v-model="form.description"
-            required
           ></textarea>
         </div>
 
@@ -41,7 +44,9 @@
             :disabled="!isTitleValid || isLoading"
           >
             <Spinner v-if="isLoading">Loading...</Spinner>
-            <span v-else>Create Challenge</span>
+            <span v-else>{{
+              isEditMode ? "Save Changes" : "Create Challenge"
+            }}</span>
           </button>
         </div>
 
@@ -54,10 +59,16 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, ref, computed } from "vue";
+import { reactive, ref, computed, onMounted } from "vue";
 import Spinner from "./Spinner.vue";
+import type { Challenge } from "@/stores/useChallengeStore";
 
-defineProps({
+const props = defineProps({
+  challenge: {
+    type: Object as () => Challenge,
+    required: false,
+    default: null,
+  },
   isLoading: {
     type: Boolean,
     default: false,
@@ -68,6 +79,8 @@ defineProps({
   },
 });
 
+const isEditMode = computed(() => !!props.challenge);
+
 const emit = defineEmits(["submit", "cancel"]);
 
 const form = reactive({
@@ -76,6 +89,7 @@ const form = reactive({
 });
 
 const titleError = ref("");
+const descriptionError = ref("");
 const isTitleValid = computed(() => form.title.trim() !== "");
 
 const validateTitle = () => {
@@ -92,12 +106,27 @@ const handleSubmit = () => {
     return;
   }
 
-  emit("submit", { ...form });
+  if (isEditMode.value && props.challenge) {
+    emit("submit", {
+      id: props.challenge.id,
+      title: form.title,
+      description: form.description,
+    });
+  } else {
+    emit("submit", { ...form });
+  }
 };
 
 const onCancel = () => {
   emit("cancel");
 };
+
+onMounted(() => {
+  if (isEditMode.value && props.challenge) {
+    form.title = props.challenge.title;
+    form.description = props.challenge.description;
+  }
+});
 </script>
 
 <style scoped>

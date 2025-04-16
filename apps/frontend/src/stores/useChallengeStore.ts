@@ -73,5 +73,40 @@ export const useChallengeStore = defineStore("challenge", {
         this.loading = false;
       }
     },
+
+    async updateChallenge(challenge: Challenge) {
+      this.loading = true;
+      this.error = undefined;
+      try {
+        const updatePayload: { title?: string; description?: string } = {};
+        if (challenge.title) updatePayload.title = challenge.title;
+        if (challenge.description !== undefined)
+          updatePayload.description = challenge.description;
+
+        const { data } = await apiService.challenges.update(
+          challenge.id,
+          updatePayload
+        );
+
+        const index = this.challenges.findIndex((c) => c.id === challenge.id);
+        if (index !== -1) {
+          this.challenges.splice(index, 1, data);
+        }
+
+        if (this.randomChallenge && this.randomChallenge.id === challenge.id) {
+          this.randomChallenge = data;
+        }
+
+        return data;
+      } catch (error) {
+        const errorMessage =
+          error instanceof Error ? error.message : "Failed to update challenge";
+        this.error = errorMessage;
+        console.error("Error updating challenge:", error);
+        throw error;
+      } finally {
+        this.loading = false;
+      }
+    },
   },
 });

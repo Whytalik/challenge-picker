@@ -1,18 +1,16 @@
-import { IsString, IsNotEmpty, IsOptional } from 'class-validator';
+import { IsString, IsOptional } from 'class-validator';
 import type { ValidationOptions } from 'class-validator';
 
-export class CreateChallengeDto {
+export class UpdateChallengeDto {
   @IsString({
     message: 'Title must be a string',
   } as ValidationOptions)
-  @IsNotEmpty({
-    message: 'Title is required',
-  } as ValidationOptions)
-  title: string;
-
   @IsOptional()
+  title?: string;
+
   @IsString({
     message: 'Description must be a string',
   } as ValidationOptions)
+  @IsOptional()
   description?: string;
 }
