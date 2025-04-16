@@ -48,8 +48,8 @@
 
     <Toast
       :show="showToast"
-      message="Challenge successfully created! 🎉"
-      type="success"
+      :message="toastMessage"
+      :type="toastType"
       :duration="3000"
       @close="closeToast"
     />
@@ -65,6 +65,8 @@ import Toast from "@/components/Toast.vue";
 
 const isFormVisible = ref(false);
 const showToast = ref(false);
+const toastMessage = ref("Challenge successfully created! 🎉");
+const toastType = ref("success");
 const store = useChallengeStore();
 
 const toggleFormVisibility = () => {
@@ -83,9 +85,14 @@ const handleSubmit = async (formData: Omit<Challenge, "id">) => {
     });
 
     isFormVisible.value = false;
+    toastMessage.value = "Challenge successfully created! 🎉";
+    toastType.value = "success";
     showToast.value = true;
   } catch (error) {
     console.error("Error creating challenge:", error);
+    toastMessage.value = "Error creating challenge";
+    toastType.value = "error";
+    showToast.value = true;
   }
 };
 
@@ -121,6 +128,11 @@ const closeToast = () => {
   font-size: 1.8rem;
   color: var(--color-primary-dark);
   text-decoration: none;
+}
+
+.app-nav {
+  display: flex;
+  align-items: center;
 }
 
 .nav-link {

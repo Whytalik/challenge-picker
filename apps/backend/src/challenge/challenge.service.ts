@@ -13,13 +13,16 @@ export class ChallengeService {
       description: createChallengeDto.description || '',
     };
 
-    return this.prisma.challenge.create({
+    const challenge = await this.prisma.challenge.create({
       data,
     });
+
+    return challenge;
   }
 
   async getAll() {
-    return this.prisma.challenge.findMany();
+    const challenges = await this.prisma.challenge.findMany();
+    return challenges;
   }
 
   async getRandom() {
@@ -50,10 +53,12 @@ export class ChallengeService {
       throw new NotFoundException(`Challenge with ID ${id} not found`);
     }
 
-    return this.prisma.challenge.update({
+    const updatedChallenge = await this.prisma.challenge.update({
       where: { id: numericId },
       data: updateChallengeDto,
     });
+
+    return updatedChallenge;
   }
 
   async delete(id: string) {
@@ -67,8 +72,10 @@ export class ChallengeService {
       throw new NotFoundException(`Challenge with ID ${id} not found`);
     }
 
-    return this.prisma.challenge.delete({
+    const deletedChallenge = await this.prisma.challenge.delete({
       where: { id: numericId },
     });
+
+    return deletedChallenge;
   }
 }

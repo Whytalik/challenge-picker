@@ -1,9 +1,9 @@
 import axios from "axios";
 
-const MAX_RETRIES = 2;
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
-export const api = axios.create({
-  baseURL: "http://localhost:3000",
+const api = axios.create({
+  baseURL: API_URL,
   headers: {
     "Content-Type": "application/json",
   },
@@ -12,8 +12,6 @@ export const api = axios.create({
 
 api.interceptors.request.use(
   (config) => {
-    // Authentication headers here if needed in the future
-    // config.headers.Authorization = `Bearer ${localStorage.getItem('token')}`;
     return config;
   },
   (error) => {
@@ -25,63 +23,34 @@ api.interceptors.response.use(
   (response) => {
     return response;
   },
-  async (error) => {
-    const originalRequest = error.config;
-
-    // Add retry mechanism for network errors or 5xx server errors
-    if (
-      (error.response && error.response.status >= 500) ||
-      error.code === "ECONNABORTED" ||
-      !error.response
-    ) {
-      if (!originalRequest._retry) {
-        originalRequest._retry = 0;
-      }
-
-      if (originalRequest._retry < MAX_RETRIES) {
-        originalRequest._retry++;
-
-        console.log(
-          `Retrying request (${originalRequest._retry}/${MAX_RETRIES}): ${originalRequest.url}`
-        );
-
-        const delay = 1000 * Math.pow(2, originalRequest._retry - 1);
-        await new Promise((resolve) => setTimeout(resolve, delay));
-
-        return api(originalRequest);
-      }
-    }
-
+  (error) => {
     if (error.response) {
-      console.error("Server error:", error.response.data);
+      const { status } = error.response;
 
-      switch (error.response.status) {
+      switch (status) {
         case 401:
-          console.error("Unauthorized - You might need to login.");
+          console.error("Request failed - Please try again.");
           break;
         case 403:
-          console.error(
-            "Forbidden - You do not have permission to access this resource."
-          );
+          console.error("Access denied.");
           break;
         case 404:
-          console.error("Not found - The requested resource was not found.");
+          console.error("Resource not found.");
           break;
         case 500:
-          console.error("Server error - Something went wrong on the server.");
+          console.error("Server error - Please try again later.");
           break;
+        default:
+          console.error(`Error: ${error.message}`);
       }
-    } else if (error.request) {
-      console.error("Network error: No response received from server");
     } else {
-      console.error("Request error:", error.message);
+      console.error("Network error - Please check your connection.");
     }
 
     return Promise.reject(error);
   }
 );
 
-// API helper methods for cleaner code elsewhere in the application
 export const apiService = {
   challenges: {
     getAll: () => api.get("/challenge"),
@@ -94,3 +63,5 @@ export const apiService = {
     delete: (id: string) => api.delete(`/challenge/${id}`),
   },
 };
+
+export default api;
