@@ -9,7 +9,7 @@
         ✏️ Edit
       </button>
       <button @click="onDelete" class="delete-button" title="Delete Challenge">
-        🗑️ Видалити
+        🗑️ Delete
       </button>
     </div>
   </div>

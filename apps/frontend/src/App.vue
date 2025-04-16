@@ -18,6 +18,12 @@
           active-class="nav-link-active"
           >📋 All Challenges</router-link
         >
+        <router-link
+          class="nav-link"
+          to="/history"
+          active-class="nav-link-active"
+          >📅 History</router-link
+        >
         <button @click="toggleFormVisibility" class="action-button">
           + Add Challenge
         </button>
@@ -32,7 +38,6 @@
       <p class="footer-text">© 2025 Challenge Picker</p>
     </footer>
 
-    <!-- Challenge Form Modal -->
     <ChallengeForm
       v-if="isFormVisible"
       :is-loading="store.loading"
@@ -41,7 +46,6 @@
       @cancel="hideForm"
     />
 
-    <!-- Toast Notification -->
     <Toast
       :show="showToast"
       message="Challenge successfully created! 🎉"

@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from "vue-router";
 import ChallengePage from "@/pages/ChallengePage.vue";
 import ChallengeListPage from "@/pages/ChallengeListPage.vue";
+import ChallengeHistoryPage from "@/pages/ChallengeHistoryPage.vue";
 
 const routes = [
   {
@@ -27,6 +28,14 @@ const routes = [
       title: "All Challenges",
     },
   },
+  {
+    path: "/history",
+    name: "History",
+    component: ChallengeHistoryPage,
+    meta: {
+      title: "Challenge History",
+    },
+  },
 ];
 
 const router = createRouter({
@@ -37,13 +46,7 @@ const router = createRouter({
 // Update document title based on route
 router.beforeEach((to, _from, next) => {
   const pageTitle = to.meta.title as string;
-
-  if (pageTitle) {
-    document.title = `Challenge Picker | ${pageTitle}`;
-  } else {
-    document.title = "Challenge Picker";
-  }
-
+  document.title = pageTitle ? `Challenge Picker | ${pageTitle}` : "Challenge Picker";
   next();
 });
 
