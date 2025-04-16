@@ -145,23 +145,39 @@ onMounted(() => {
 
 <style scoped>
 .challenge-list-page {
-  padding: 2rem;
   max-width: 800px;
-  margin: 0 auto;
+}
+
+.page-header {
+  position: relative;
+  margin-bottom: var(--spacing-xl);
 }
 
 .page-title {
   text-align: center;
-  margin-bottom: 2rem;
   color: var(--color-primary-dark);
+  position: relative;
+  z-index: 1;
+  display: inline-block;
+  font-size: 2rem;
+  margin: 0 auto var(--spacing-md);
+  width: 100%;
+}
+
+.header-decoration {
+  position: absolute;
+  bottom: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100px;
+  height: 4px;
+  background: linear-gradient(90deg, transparent, var(--color-secondary), transparent);
+  border-radius: var(--radius-lg);
 }
 
 .challenges-list-section {
-  margin-bottom: 2rem;
-  padding: 1rem;
-  border: 1px solid var(--color-primary-light);
-  border-radius: 8px;
-  background-color: var(--color-tertiary);
+  position: relative;
+  min-height: 200px;
 }
 
 .challenges-list {
@@ -171,17 +187,52 @@ onMounted(() => {
 }
 
 .challenge-item-container {
-  margin-bottom: 1rem;
+  transition: all 0.3s ease;
 }
 
-.challenge-item-container:last-child {
-  margin-bottom: 0;
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-xl);
+  text-align: center;
+  color: var(--color-primary);
+}
+
+.empty-icon {
+  font-size: 3rem;
+  margin-bottom: var(--spacing-md);
+  opacity: 0.7;
 }
 
 .loading-state,
 .no-challenges {
-  padding: 1rem;
+  padding: var(--spacing-xl);
   text-align: center;
   color: var(--color-primary);
+  border-radius: var(--radius-md);
+  background-color: var(--color-tertiary);
+  box-shadow: var(--shadow-sm);
+}
+
+/* Анімації для списку */
+.challenge-list-enter-active, 
+.challenge-list-leave-active {
+  transition: all 0.5s ease;
+}
+
+.challenge-list-enter-from {
+  opacity: 0;
+  transform: translateX(-30px);
+}
+
+.challenge-list-leave-to {
+  opacity: 0;
+  transform: translateX(30px);
+}
+
+.challenge-list-move {
+  transition: transform 0.5s ease;
 }
 </style>

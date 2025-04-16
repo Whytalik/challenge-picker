@@ -1,11 +1,6 @@
 import { IsString, IsOptional, IsEnum, IsArray } from 'class-validator';
 import type { ValidationOptions } from 'class-validator';
-
-enum Difficulty {
-  easy = 'easy',
-  medium = 'medium',
-  hard = 'hard',
-}
+import { Difficulty } from '../enums';
 
 export class UpdateChallengeDto {
   @IsString({

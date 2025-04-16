@@ -7,5 +7,6 @@ import { PrismaModule } from '../prisma/prisma.module';
   imports: [PrismaModule],
   controllers: [ChallengeController],
   providers: [ChallengeService],
+  exports: [ChallengeService],
 })
 export class ChallengeModule {}

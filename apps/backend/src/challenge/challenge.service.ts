@@ -1,13 +1,13 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { CreateChallengeDto } from './dto/create-challenge.dto';
-import { UpdateChallengeDto } from './dto/update-challenge.dto';
+import { CreateChallengeDto, UpdateChallengeDto } from './dto';
+import { Challenge } from '@prisma/client';
 
 @Injectable()
 export class ChallengeService {
   constructor(private prisma: PrismaService) {}
 
-  async create(createChallengeDto: CreateChallengeDto) {
+  async create(createChallengeDto: CreateChallengeDto): Promise<Challenge> {
     const data = {
       title: createChallengeDto.title,
       description: createChallengeDto.description || '',
@@ -16,19 +16,16 @@ export class ChallengeService {
       category: createChallengeDto.category,
     };
 
-    const challenge = await this.prisma.challenge.create({
+    return this.prisma.challenge.create({
       data,
     });
-
-    return challenge;
   }
 
-  async getAll() {
-    const challenges = await this.prisma.challenge.findMany();
-    return challenges;
+  async getAll(): Promise<Challenge[]> {
+    return this.prisma.challenge.findMany();
   }
 
-  async getRandom() {
+  async getRandom(): Promise<Challenge> {
     const count = await this.prisma.challenge.count();
     if (count === 0) {
       throw new NotFoundException('No challenges found');
@@ -42,40 +39,41 @@ export class ChallengeService {
     return challenge;
   }
 
-  async update(id: string, updateChallengeDto: UpdateChallengeDto) {
-    const numericId = parseInt(id, 10);
+  async update(
+    id: string,
+    updateChallengeDto: UpdateChallengeDto,
+  ): Promise<Challenge> {
+    const numericId = this.parseId(id);
+    await this.findChallengeById(numericId);
 
-    const challenge = await this.prisma.challenge.findUnique({
-      where: { id: numericId },
-    });
-
-    if (!challenge) {
-      throw new NotFoundException(`Challenge with ID ${id} not found`);
-    }
-
-    const updatedChallenge = await this.prisma.challenge.update({
+    return this.prisma.challenge.update({
       where: { id: numericId },
       data: updateChallengeDto,
     });
-
-    return updatedChallenge;
   }
 
-  async delete(id: string) {
-    const numericId = parseInt(id, 10);
+  async delete(id: string): Promise<Challenge> {
+    const numericId = this.parseId(id);
+    await this.findChallengeById(numericId);
 
-    const challenge = await this.prisma.challenge.findUnique({
+    return this.prisma.challenge.delete({
       where: { id: numericId },
+    });
+  }
+
+  private parseId(id: string): number {
+    return parseInt(id, 10);
+  }
+
+  private async findChallengeById(id: number): Promise<Challenge> {
+    const challenge = await this.prisma.challenge.findUnique({
+      where: { id },
     });
 
     if (!challenge) {
       throw new NotFoundException(`Challenge with ID ${id} not found`);
     }
 
-    const deletedChallenge = await this.prisma.challenge.delete({
-      where: { id: numericId },
-    });
-
-    return deletedChallenge;
+    return challenge;
   }
 }
