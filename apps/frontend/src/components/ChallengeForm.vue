@@ -445,7 +445,6 @@ onMounted(() => {
   background-color: var(--color-tertiary-darker);
 }
 
-/* Tags input styles */
 .tags-input-container {
   border: 1px solid var(--color-primary-light);
   border-radius: 4px;

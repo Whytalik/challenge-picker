@@ -30,10 +30,10 @@
       </div>
     </div>
     <div class="challenge-actions">
-      <button @click="onEdit" class="edit-button" title="Edit Challenge">
+      <button @click="onEdit" class="btn btn-primary" title="Edit Challenge">
         ✏️ Edit
       </button>
-      <button @click="onDelete" class="delete-button" title="Delete Challenge">
+      <button @click="onDelete" class="btn btn-danger" title="Delete Challenge">
         🗑️ Delete
       </button>
     </div>
@@ -78,14 +78,21 @@ const onDelete = () => {
 
 <style scoped>
 .challenge-item {
-  padding: 1rem;
-  margin-bottom: 1rem;
-  background-color: var(--color-primary-light);
-  color: var(--color-tertiary);
-  border-radius: 4px;
+  padding: var(--spacing-md);
+  margin-bottom: var(--spacing-md);
+  background-color: #f8f8f8;
+  color: var(--color-primary);
+  border-radius: var(--radius-md);
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.challenge-item:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
 }
 
 .challenge-item:last-child {
@@ -94,7 +101,7 @@ const onDelete = () => {
 
 .challenge-content {
   flex: 1;
-  margin-right: 1rem;
+  margin-right: var(--spacing-md);
   word-break: break-word;
   overflow-wrap: break-word;
   min-width: 0;
@@ -103,52 +110,55 @@ const onDelete = () => {
 .challenge-header {
   display: flex;
   align-items: center;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.75rem;
   flex-wrap: wrap;
-  gap: 0.5rem;
+  gap: var(--spacing-sm);
 }
 
 .challenge-item-title {
   margin: 0;
   overflow-wrap: break-word;
   flex: 1;
+  color: var(--color-primary-dark);
+  font-size: 1.2rem;
 }
 
 .difficulty-badge {
   display: inline-flex;
   align-items: center;
   padding: 0.25rem 0.5rem;
-  border-radius: 4px;
+  border-radius: 16px;
   font-size: 0.8rem;
   font-weight: 500;
 }
 
 .difficulty-easy {
-  background-color: rgba(0, 200, 0, 0.2);
-  color: rgb(0, 150, 0);
+  background-color: rgba(0, 200, 0, 0.15);
+  color: rgb(0, 130, 0);
 }
 
 .difficulty-medium {
-  background-color: rgba(255, 200, 0, 0.2);
-  color: rgb(200, 150, 0);
+  background-color: rgba(255, 180, 0, 0.15);
+  color: rgb(180, 130, 0);
 }
 
 .difficulty-hard {
-  background-color: rgba(255, 0, 0, 0.2);
-  color: rgb(200, 0, 0);
+  background-color: rgba(255, 0, 0, 0.15);
+  color: rgb(180, 0, 0);
 }
 
 .challenge-item-description {
   margin: 0 0 0.75rem 0;
   overflow-wrap: break-word;
   font-style: italic;
-  color: rgba(255, 255, 255, 0.8);
+  color: var(--color-primary);
+  line-height: 1.4;
 }
 
 .challenge-tags {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem;
+  gap: var(--spacing-sm);
   margin-bottom: 0.75rem;
 }
 
@@ -158,55 +168,24 @@ const onDelete = () => {
   padding: 0.25rem 0.5rem;
   border-radius: 16px;
   font-size: 0.75rem;
+  font-weight: 500;
 }
 
 .challenge-category {
   font-size: 0.85rem;
-  color: rgba(255, 255, 255, 0.7);
+  color: var(--color-primary);
+  padding: var(--spacing-xs) 0;
 }
 
 .category-label {
   font-weight: 500;
+  color: var(--color-secondary);
 }
 
 .challenge-actions {
   display: flex;
-  gap: 0.5rem;
+  gap: var(--spacing-sm);
   flex-shrink: 0;
   flex-direction: column;
-}
-
-.edit-button {
-  background-color: rgba(255, 255, 255, 0.2);
-  color: white;
-  border: none;
-  border-radius: 4px;
-  padding: 0.5rem 1rem;
-  cursor: pointer;
-  font-size: 0.9rem;
-  transition: background-color 0.2s;
-  white-space: nowrap;
-  min-width: 90px;
-}
-
-.edit-button:hover {
-  background-color: rgba(255, 255, 255, 0.3);
-}
-
-.delete-button {
-  background-color: rgba(255, 0, 0, 0.6);
-  color: white;
-  border: none;
-  border-radius: 4px;
-  padding: 0.5rem 1rem;
-  cursor: pointer;
-  font-size: 0.9rem;
-  transition: background-color 0.2s;
-  white-space: nowrap;
-  min-width: 90px;
-}
-
-.delete-button:hover {
-  background-color: rgba(255, 0, 0, 0.8);
 }
 </style>

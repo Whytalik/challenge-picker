@@ -1,34 +1,39 @@
 <template>
-  <div class="challenge-page">
-    <div class="challenge-of-day-container">
-      <div v-if="!store.randomChallenge && !store.loading" class="no-challenge">
+  <div class="challenge-page page-container">
+    <h1 class="page-title">Today's Challenge</h1>
+
+    <div class="challenge-container card">
+      <div v-if="store.loading" class="loading-state">
+        <Spinner>Loading challenge...</Spinner>
+      </div>
+
+      <div v-else-if="isChallengeDone" class="challenge-done">
         <div class="completed-message">
-          <div class="completion-icon">✓</div>
-          <p>Challenge completed for today!</p>
+          <div class="completion-icon">✅</div>
+          <h3>Challenge completed for today!</h3>
           <p class="comeback-text">Come back tomorrow for a new challenge.</p>
         </div>
       </div>
 
-      <div
-        v-else-if="store.loading && loadingType === 'random'"
-        class="loading-state"
-      >
-        <Spinner>Loading challenge...</Spinner>
+      <div v-else-if="!hasChallenge" class="no-challenge">
+        <div class="action-wrapper">
+          <p class="text-center mb-md">
+            Ready for a challenge? Click the button below to get one!
+          </p>
+          <button
+            @click="handleGetChallenge"
+            class="btn btn-primary get-challenge-button"
+          >
+            Get a Challenge 🎯
+          </button>
+        </div>
       </div>
 
       <div v-else-if="store.randomChallenge" class="challenge-day-content">
-        <div
-          class="challenge-expiry"
-          :class="{ 'expiry-warning': isExpiringToday }"
-        >
-          <span v-if="isExpiringToday">⚠️ Challenge expires today!</span>
-          <span v-else>Challenge for: {{ formattedChallengeDate }}</span>
-        </div>
-
         <div class="challenge-icons">
-          <span class="emoji-icon">💪</span>
-          <span class="emoji-icon">🌟</span>
           <span class="emoji-icon">🎯</span>
+          <span class="emoji-icon">💪</span>
+          <span class="emoji-icon">✨</span>
         </div>
 
         <h2 class="challenge-day-title">{{ store.randomChallenge.title }}</h2>
@@ -40,36 +45,38 @@
           {{ store.randomChallenge.description }}
         </p>
 
+        <div
+          v-if="expiryTime"
+          class="challenge-expiry"
+          :class="{ 'expiry-warning': isExpiringSoon }"
+        >
+          Expires in: {{ formatRemainingTime(expiryTime) }}
+        </div>
+
         <div class="challenge-actions">
           <button
-            v-if="canReplaceChallenge"
-            @click="showReplaceConfirmation = true"
-            class="replace-button"
+            @click="handleReplaceChallenge"
+            class="btn btn-secondary replace-button"
           >
-            🔁 Another One
+            🔄 Different Challenge
           </button>
-
-          <button @click="challengeCompleted" class="complete-button">
-            ✅ Completed
+          <button
+            @click="handleCompleteChallenge"
+            class="btn btn-success complete-button"
+          >
+            ✅ Complete Challenge
           </button>
         </div>
       </div>
     </div>
 
-    <ConfirmModal
-      v-if="showReplaceConfirmation"
-      title="Change Challenge"
-      message="Are you sure you want to replace the current challenge? This can only be done once."
-      confirmText="✅ Replace"
-      cancelText="❌ Cancel"
-      @confirm="replaceChallenge"
-      @cancel="showReplaceConfirmation = false"
-    />
-
-    <CongratulationsModal
-      v-if="showCongratulations"
-      :message="challengeMessage"
-      @close="closeCongratulations"
+    <!-- Toast Notification -->
+    <Toast
+      :show="showToast"
+      :message="toastMessage"
+      :type="toastType"
+      :duration="3000"
+      @close="closeToast"
     />
   </div>
 </template>
@@ -80,6 +87,7 @@ import { useChallengeStore } from "@/stores/useChallengeStore";
 import Spinner from "@/components/Spinner.vue";
 import ConfirmModal from "@/components/ConfirmModal.vue";
 import CongratulationsModal from "@/components/CongratulationsModal.vue";
+import Toast from "@/components/Toast.vue";
 
 const store = useChallengeStore();
 const loadingType = ref<"random">("random");
@@ -88,6 +96,9 @@ const showReplaceConfirmation = ref(false);
 const showCongratulations = ref(false);
 const challengeDate = ref(new Date());
 const completedChallengesCount = ref(0);
+const showToast = ref(false);
+const toastMessage = ref('');
+const toastType = ref('success');
 
 const challengeMessage = computed(() =>
   store.randomChallenge?.title
@@ -96,11 +107,33 @@ const challengeMessage = computed(() =>
 );
 
 const formattedChallengeDate = computed(() => {
-  return challengeDate.value.toLocaleDateString('en-US', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric'
+  return challengeDate.value.toLocaleDateString("en-US", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
   });
+});
+
+const expiryTime = computed(() => {
+  if (!store.randomChallenge) return null;
+  
+  const now = new Date();
+  const endOfDay = new Date(
+    now.getFullYear(),
+    now.getMonth(),
+    now.getDate(),
+    23,
+    59,
+    59
+  );
+  
+  return endOfDay.getTime() - now.getTime();
+});
+
+const isExpiringSoon = computed(() => {
+  if (!expiryTime.value) return false;
+  // Return true if less than 3 hours remaining
+  return expiryTime.value < 3 * 60 * 60 * 1000;
 });
 
 const isExpiringToday = computed(() => {
@@ -122,6 +155,25 @@ const isExpiringToday = computed(() => {
     challengeEndDate.getFullYear() === todayEnd.getFullYear()
   );
 });
+
+const isChallengeDone = computed(() => {
+  return isChallengeDoneToday();
+});
+
+const hasChallenge = computed(() => {
+  return store.randomChallenge !== null;
+});
+
+const formatRemainingTime = (ms: number) => {
+  const hours = Math.floor(ms / (1000 * 60 * 60));
+  const minutes = Math.floor((ms % (1000 * 60 * 60)) / (1000 * 60));
+  
+  if (hours > 0) {
+    return `${hours}h ${minutes}m`;
+  } else {
+    return `${minutes}m`;
+  }
+};
 
 const checkExpiredChallenge = () => {
   const savedChallengeDate = localStorage.getItem("challengeDate");
@@ -234,6 +286,39 @@ const isChallengeDoneToday = () => {
   return false;
 };
 
+const handleGetChallenge = async () => {
+  try {
+    await getRandomChallenge();
+    showToastMessage('Challenge retrieved successfully!', 'success');
+  } catch (error) {
+    showToastMessage('Failed to get challenge. Please try again.', 'error');
+  }
+};
+
+const handleReplaceChallenge = async () => {
+  try {
+    await replaceChallenge();
+    showToastMessage('Challenge replaced successfully!', 'success');
+  } catch (error) {
+    showToastMessage('Failed to replace challenge.', 'error');
+  }
+};
+
+const handleCompleteChallenge = () => {
+  challengeCompleted();
+  showToastMessage('Challenge completed! Great job!', 'success');
+};
+
+const showToastMessage = (message: string, type: string = 'success') => {
+  toastMessage.value = message;
+  toastType.value = type;
+  showToast.value = true;
+};
+
+const closeToast = () => {
+  showToast.value = false;
+};
+
 onMounted(() => {
   completedChallengesCount.value = parseInt(
     localStorage.getItem("completedChallengesCount") || "0"
@@ -263,35 +348,18 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.challenge-page {
-  padding: 2rem;
-  max-width: 800px;
-  margin: 0 auto;
-}
-
-.page-title {
-  text-align: center;
-  margin-bottom: 2rem;
-  color: var(--color-primary-dark);
-}
-
-.challenge-of-day-container {
+.challenge-container {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  margin: 2rem auto;
-  padding: 2rem;
-  border-radius: 12px;
-  background-color: var(--color-tertiary);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
   min-height: 300px;
 }
 
 .challenge-expiry {
-  margin-bottom: 1rem;
-  padding: 0.5rem 1rem;
-  border-radius: 4px;
+  margin-bottom: var(--spacing-md);
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: var(--radius-sm);
   font-size: 0.9rem;
   color: var(--color-primary);
 }
@@ -300,18 +368,6 @@ onMounted(() => {
   color: #ff9800;
   font-weight: bold;
   animation: pulse 2s infinite;
-}
-
-@keyframes pulse {
-  0% {
-    opacity: 0.8;
-  }
-  50% {
-    opacity: 1;
-  }
-  100% {
-    opacity: 0.8;
-  }
 }
 
 .no-challenge {
@@ -329,7 +385,7 @@ onMounted(() => {
 .completion-icon {
   font-size: 2rem;
   color: #4caf50;
-  margin-bottom: 0.5rem;
+  margin-bottom: var(--spacing-sm);
 }
 
 .comeback-text {
@@ -337,34 +393,10 @@ onMounted(() => {
   color: var(--color-primary);
 }
 
-.action-wrapper {
-  text-align: center;
-}
-
 .get-challenge-button {
-  background-color: var(--color-secondary);
-  color: var(--color-tertiary);
-  padding: 1rem 2rem;
-  border: none;
-  border-radius: 8px;
+  padding: var(--spacing-md) var(--spacing-xl);
   font-size: 1.2rem;
   font-weight: bold;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 10px rgba(138, 43, 226, 0.3);
-}
-
-.get-challenge-button:hover {
-  background-color: var(--color-secondary-dark);
-  transform: translateY(-2px);
-  box-shadow: 0 6px 12px rgba(138, 43, 226, 0.4);
-}
-
-.loading-state {
-  padding: 2rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
 
 .challenge-day-content {
@@ -380,12 +412,12 @@ onMounted(() => {
 .challenge-icons {
   display: flex;
   justify-content: center;
-  margin-bottom: 1.5rem;
+  margin-bottom: var(--spacing-lg);
 }
 
 .emoji-icon {
   font-size: 2rem;
-  margin: 0 0.5rem;
+  margin: 0 var(--spacing-sm);
   animation: bounce 1s infinite alternate;
 }
 
@@ -400,22 +432,22 @@ onMounted(() => {
 .challenge-day-title {
   font-size: 2.5rem;
   font-weight: bold;
-  margin-bottom: 1.5rem;
+  margin-bottom: var(--spacing-lg);
   color: var(--color-primary-dark);
   line-height: 1.2;
 }
 
 .challenge-day-description {
   font-size: 1.25rem;
-  margin-bottom: 2rem;
+  margin-bottom: var(--spacing-xl);
   color: var(--color-primary);
   max-width: 80%;
 }
 
 .challenge-actions {
   display: flex;
-  gap: 1rem;
-  margin-top: 1rem;
+  gap: var(--spacing-md);
+  margin-top: var(--spacing-md);
   flex-wrap: wrap;
   justify-content: center;
 }

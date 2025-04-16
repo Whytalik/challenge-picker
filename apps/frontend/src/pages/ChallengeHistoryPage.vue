@@ -1,11 +1,11 @@
 <template>
-  <div class="history-page">
+  <div class="history-page page-container">
     <h1 class="page-title">Challenge History</h1>
 
-    <div class="calendar-container">
+    <div class="calendar-container card">
       <div class="calendar-navigation">
         <div class="calendar-controls">
-          <button class="nav-button" @click="goToToday">Today</button>
+          <button class="btn btn-primary nav-button" @click="goToToday">Today</button>
           <div class="month-navigation">
             <button class="month-nav" @click="previousMonth">←</button>
             <button class="month-nav" @click="nextMonth">→</button>
@@ -42,14 +42,19 @@
           <span class="day-number">{{ date.getDate() }}</span>
           <div
             v-if="hasChallenge && challenge"
-            class="challenge-indicator"
-            :title="challenge.title"
-          ></div>
+            class="challenge-info"
+          >
+            <div class="challenge-indicator"></div>
+            <div class="challenge-title-preview">{{ truncateTitle(challenge.title) }}</div>
+            <div v-if="challenge.tags && challenge.tags.length > 0" class="challenge-tags-preview">
+              <span v-for="(tag, index) in challenge.tags.slice(0, 1)" :key="index">{{ tag }}</span>
+            </div>
+          </div>
         </div>
       </div>
     </div>
 
-    <div class="calendar-legend">
+    <div class="calendar-legend card">
       <div class="legend-item">
         <div class="legend-indicator"></div>
         <span>Completed Challenge</span>
@@ -184,6 +189,10 @@ const nextMonth = () => {
 const showChallengeDetails = (challenge: CalendarChallenge) => {
   selectedChallenge.value = challenge;
 };
+
+const truncateTitle = (title: string) => {
+  return title.length > 12 ? `${title.substring(0, 10)}...` : title;
+};
 </script>
 
 <style scoped>
@@ -209,8 +218,8 @@ const showChallengeDetails = (challenge: CalendarChallenge) => {
 .calendar-navigation {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
-  margin-bottom: 1.5rem;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-lg);
 }
 
 .calendar-controls {
@@ -221,7 +230,7 @@ const showChallengeDetails = (challenge: CalendarChallenge) => {
 
 .month-navigation {
   display: flex;
-  gap: 0.5rem;
+  gap: var(--spacing-sm);
 }
 
 .nav-button {
@@ -243,7 +252,7 @@ const showChallengeDetails = (challenge: CalendarChallenge) => {
   background-color: transparent;
   color: var(--color-primary);
   border: 1px solid var(--color-primary-light);
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   width: 32px;
   height: 32px;
   font-size: 1rem;
@@ -268,14 +277,14 @@ const showChallengeDetails = (challenge: CalendarChallenge) => {
   grid-template-columns: repeat(7, 1fr);
   gap: 1px;
   background-color: var(--color-primary-light);
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   overflow: hidden;
 }
 
 .weekday {
   background-color: var(--color-secondary-light);
   color: var(--color-tertiary);
-  padding: 0.5rem;
+  padding: var(--spacing-sm);
   text-align: center;
   font-size: 0.8rem;
   font-weight: 500;
@@ -284,13 +293,16 @@ const showChallengeDetails = (challenge: CalendarChallenge) => {
 .calendar-day {
   background-color: var(--color-tertiary);
   aspect-ratio: 1;
-  padding: 0.5rem;
+  padding: var(--spacing-sm);
   position: relative;
   cursor: pointer;
   transition: background-color 0.2s;
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: flex-start;
+  min-height: 70px;
+  overflow: hidden;
 }
 
 .calendar-day:hover {
@@ -312,14 +324,68 @@ const showChallengeDetails = (challenge: CalendarChallenge) => {
 .has-challenge {
   background-color: rgba(144, 238, 144, 0.3) !important;
   cursor: pointer;
+  position: relative;
+}
+
+.has-challenge:after {
+  content: "";
+  position: absolute;
+  bottom: 5px;
+  right: 5px;
+  width: 8px;
+  height: 8px;
+  background-color: var(--color-secondary);
+  border-radius: 50%;
+  animation: pulse 1.5s infinite;
 }
 
 .has-challenge:hover {
   background-color: rgba(144, 238, 144, 0.5) !important;
+  transform: translateY(-2px);
+  transition: transform 0.2s;
+  box-shadow: var(--shadow-sm);
+}
+
+.challenge-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  margin-top: 1.2rem;
+  cursor: pointer;
 }
 
 .challenge-indicator {
-  display: none;
+  width: 10px;
+  height: 10px;
+  background-color: var(--color-secondary);
+  border-radius: 50%;
+  margin-bottom: 0.3rem;
+}
+
+.challenge-title-preview {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--color-primary-dark);
+  text-align: center;
+  width: 100%;
+  line-height: 1.2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 0.2rem;
+}
+
+.challenge-tags-preview {
+  margin-top: 0.2rem;
+  font-size: 0.65rem;
+  color: var(--color-secondary);
+  background-color: rgba(138, 43, 226, 0.1);
+  padding: 0.15rem 0.4rem;
+  border-radius: 12px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 90%;
 }
 
 .is-today {
@@ -330,16 +396,13 @@ const showChallengeDetails = (challenge: CalendarChallenge) => {
   display: flex;
   justify-content: center;
   gap: 2rem;
-  margin-top: 1.5rem;
-  padding: 1rem;
-  background-color: var(--color-tertiary);
-  border-radius: 8px;
+  margin-top: var(--spacing-lg);
 }
 
 .legend-item {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: var(--spacing-sm);
   font-size: 0.9rem;
   color: var(--color-primary);
 }
@@ -348,7 +411,7 @@ const showChallengeDetails = (challenge: CalendarChallenge) => {
   width: 24px;
   height: 24px;
   background-color: rgba(144, 238, 144, 0.3);
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
 }
 
 .legend-indicator.today {
@@ -363,10 +426,27 @@ const showChallengeDetails = (challenge: CalendarChallenge) => {
 
   .calendar-day {
     padding: 0.3rem;
+    min-height: 60px;
   }
 
   .day-number {
     font-size: 0.7rem;
+  }
+  
+  .challenge-title-preview {
+    font-size: 0.6rem;
+  }
+}
+
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(138, 43, 226, 0.4);
+  }
+  70% {
+    box-shadow: 0 0 0 6px rgba(138, 43, 226, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(138, 43, 226, 0);
   }
 }
 </style>

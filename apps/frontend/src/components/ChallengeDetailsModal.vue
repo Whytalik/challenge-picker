@@ -9,15 +9,38 @@
       <div class="modal-content">
         <div class="challenge-details">
           <h3 class="challenge-title">{{ challenge.title }}</h3>
-
+          
           <p v-if="challenge.description" class="challenge-description">
             {{ challenge.description }}
           </p>
 
-          <div class="completion-details">
-            <p class="completion-date">
-              Completed on: {{ formatDate(challenge.completedAt) }}
-            </p>
+          <div class="challenge-meta">
+            <div v-if="challenge.difficulty" class="meta-item">
+              <span class="meta-label">Difficulty:</span>
+              <span class="difficulty-badge" :class="difficultyClass">
+                {{ challenge.difficulty }} {{ difficultyIcon }}
+              </span>
+            </div>
+            
+            <div v-if="challenge.category" class="meta-item">
+              <span class="meta-label">Category:</span>
+              <span>{{ challenge.category }}</span>
+            </div>
+            
+            <div class="meta-item">
+              <span class="meta-label">Completed:</span>
+              <span>{{ formatDate(challenge.completedAt) }}</span>
+            </div>
+          </div>
+
+          <div v-if="challenge.tags && challenge.tags.length > 0" class="tags-container">
+            <span 
+              v-for="(tag, index) in challenge.tags" 
+              :key="index"
+              class="tag-badge"
+            >
+              {{ tag }}
+            </span>
           </div>
         </div>
       </div>
@@ -26,7 +49,7 @@
 </template>
 
 <script setup lang="ts">
-import { defineProps, defineEmits } from "vue";
+import { computed } from "vue";
 
 const props = defineProps({
   challenge: {
@@ -37,13 +60,28 @@ const props = defineProps({
 
 defineEmits(["close"]);
 
+const difficultyIcon = computed(() => {
+  switch (props.challenge.difficulty) {
+    case "easy":
+      return "🟢";
+    case "medium":
+      return "🟡";
+    case "hard":
+      return "🔴";
+    default:
+      return "🟢";
+  }
+});
+
+const difficultyClass = computed(() => {
+  return `difficulty-${props.challenge.difficulty || "easy"}`;
+});
+
 const formatDate = (date: string | Date) => {
   return new Date(date).toLocaleDateString("en-US", {
     year: "numeric",
     month: "long",
     day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
   });
 };
 </script>
@@ -64,10 +102,10 @@ const formatDate = (date: string | Date) => {
 
 .modal-container {
   background-color: var(--color-tertiary);
-  border-radius: 12px;
+  border-radius: var(--radius-lg);
   width: 90%;
-  max-width: 500px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  max-width: 450px;
+  box-shadow: var(--shadow-lg);
   animation: slideUp 0.3s ease;
 }
 
@@ -75,16 +113,16 @@ const formatDate = (date: string | Date) => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1.5rem;
+  padding: var(--spacing-md) var(--spacing-lg);
   border-bottom: 1px solid var(--color-primary-light);
   background-color: var(--color-secondary);
-  border-radius: 12px 12px 0 0;
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
   color: var(--color-tertiary);
 }
 
 .modal-title {
   margin: 0;
-  font-size: 1.5rem;
+  font-size: 1.3rem;
 }
 
 .close-button {
@@ -102,30 +140,75 @@ const formatDate = (date: string | Date) => {
 }
 
 .modal-content {
-  padding: 1.5rem;
+  padding: var(--spacing-lg);
 }
 
 .challenge-title {
   color: var(--color-primary-dark);
-  margin: 0 0 1rem;
+  margin: 0 0 var(--spacing-md) 0;
   font-size: 1.3rem;
 }
 
 .challenge-description {
   color: var(--color-primary);
-  margin-bottom: 1.5rem;
+  margin-bottom: var(--spacing-lg);
   line-height: 1.5;
+  background-color: #f8f8f8;
+  padding: 0.75rem;
+  border-radius: var(--radius-sm);
 }
 
-.completion-details {
-  padding-top: 1rem;
-  border-top: 1px solid var(--color-primary-light);
+.challenge-meta {
+  margin-bottom: var(--spacing-lg);
 }
 
-.completion-date {
-  color: var(--color-primary);
-  font-style: italic;
-  margin: 0;
+.meta-item {
+  margin-bottom: var(--spacing-sm);
+  display: flex;
+  align-items: center;
+}
+
+.meta-label {
+  font-weight: 600;
+  color: var(--color-secondary);
+  min-width: 90px;
+}
+
+.difficulty-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.5rem;
+  border-radius: 16px;
+  font-size: 0.85rem;
+}
+
+.difficulty-easy {
+  background-color: rgba(0, 200, 0, 0.15);
+  color: rgb(0, 130, 0);
+}
+
+.difficulty-medium {
+  background-color: rgba(255, 180, 0, 0.15);
+  color: rgb(180, 130, 0);
+}
+
+.difficulty-hard {
+  background-color: rgba(255, 0, 0, 0.15);
+  color: rgb(180, 0, 0);
+}
+
+.tags-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-sm);
+}
+
+.tag-badge {
+  background-color: var(--color-secondary-light);
+  color: white;
+  padding: 0.25rem 0.5rem;
+  border-radius: 16px;
+  font-size: 0.75rem;
 }
 
 @keyframes slideUp {

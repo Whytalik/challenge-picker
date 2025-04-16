@@ -1,13 +1,13 @@
 <template>
-  <div class="challenge-list-page">
+  <div class="challenge-list-page page-container">
     <h1 class="page-title">All Challenges</h1>
 
-    <section class="challenges-list-section">
+    <section class="challenges-list-section card">
       <div v-if="store.loading && loadingType === 'list'" class="loading-state">
         <Spinner>Loading challenges...</Spinner>
       </div>
 
-      <div v-else-if="store.challenges.length === 0" class="no-challenges">
+      <div v-else-if="store.challenges.length === 0" class="empty-state">
         <p>No challenges available. Create one!</p>
       </div>
 
@@ -144,37 +144,6 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.challenge-list-page {
-  max-width: 800px;
-}
-
-.page-header {
-  position: relative;
-  margin-bottom: var(--spacing-xl);
-}
-
-.page-title {
-  text-align: center;
-  color: var(--color-primary-dark);
-  position: relative;
-  z-index: 1;
-  display: inline-block;
-  font-size: 2rem;
-  margin: 0 auto var(--spacing-md);
-  width: 100%;
-}
-
-.header-decoration {
-  position: absolute;
-  bottom: -10px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 100px;
-  height: 4px;
-  background: linear-gradient(90deg, transparent, var(--color-secondary), transparent);
-  border-radius: var(--radius-lg);
-}
-
 .challenges-list-section {
   position: relative;
   min-height: 200px;
@@ -184,39 +153,29 @@ onMounted(() => {
   list-style: none;
   padding: 0;
   margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
 }
 
 .challenge-item-container {
   transition: all 0.3s ease;
 }
 
-.empty-state {
+.no-challenges p {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: var(--spacing-xl);
-  text-align: center;
-  color: var(--color-primary);
+  gap: var(--spacing-md);
 }
 
-.empty-icon {
+.no-challenges p:before {
+  content: "📋";
   font-size: 3rem;
-  margin-bottom: var(--spacing-md);
   opacity: 0.7;
 }
 
-.loading-state,
-.no-challenges {
-  padding: var(--spacing-xl);
-  text-align: center;
-  color: var(--color-primary);
-  border-radius: var(--radius-md);
-  background-color: var(--color-tertiary);
-  box-shadow: var(--shadow-sm);
-}
-
-/* Анімації для списку */
 .challenge-list-enter-active, 
 .challenge-list-leave-active {
   transition: all 0.5s ease;
@@ -224,12 +183,12 @@ onMounted(() => {
 
 .challenge-list-enter-from {
   opacity: 0;
-  transform: translateX(-30px);
+  transform: translateY(20px);
 }
 
 .challenge-list-leave-to {
   opacity: 0;
-  transform: translateX(30px);
+  transform: translateY(-20px);
 }
 
 .challenge-list-move {
